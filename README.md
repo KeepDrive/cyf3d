@@ -4,7 +4,7 @@
 ## Introduction
 This library and shader should allow you to display flat sprites as planes in 3d space with perspective projection. Also includes an example wave.
 
-This works via the shader replacing the matrices(MVP) that the Unity camera feeds to the individual objects, instead using matrices calculated in the Library.
+This works via the shader ignoring the matrices(MVP) that the Unity camera feeds to the individual objects, instead using matrices calculated in the Library.
 
 This is tested and should work on Linux(OpenGL) and Windows(DirectX), but Mac OS should also work fine by virtue of also using OpenGL. The shader should work on most hardware that can run Create Your Frisk, but I cannot guarantee that.
 
@@ -18,11 +18,17 @@ To install, as with any Create Your Frisk mod, just drop the cyf3d folder into t
 ### Shader stuff:
 All commands that you should need are listed in the library after the "Actual commands:" comment, but I'll still run through them.
 To add the shader to a sprite you should use:
-```cyf3dAddShader(sprite)```
+```
+cyf3dAddShader(sprite)
+```
 For this shader to work properly you have to put this once in the "Update()" function after all modifications to the 3d scene, if you are unsure about what that means, you can just put it at the end of the "Update()" function:
-```cyf3dUpdate()```
+```
+cyf3dUpdate()
+```
 To remove and revert the shader there is:
-```cyf3dRemoveShader(sprite)```
+```
+cyf3dRemoveShader(sprite)
+```
 WARNING: You should always remove the shader with this function before deleting a sprite or changing it's shader, the library isn't made to garbage collect for you.
 ### Sprite transformation:
 Instead of adding the shader directly, as the library has to constantly update shader values for each sprite, so it has to keep track of them.
@@ -34,11 +40,17 @@ cyf3dSetScale(sprite,scale)
 ```
 Position, rotation and scale are three-dimensional vectors, made using tables of three values: {x,y,z}(Though not necessarily, the values can be nil, which will just use the current existing values, the table can also be empty or contain less or more than three values and it should still work the same)
 You can also set all three parameters at once:
-```cyf3dSetPosRotScale(sprite,position,rotation,scale)```
+```
+cyf3dSetPosRotScale(sprite,position,rotation,scale)
+```
 And rotation and scale together, which is mostly added for optimisation's sake so it doesn't have to redo the same(rather costly) calculation twice:
-```cyf3dSetRotScale(sprite,rotation,scale)```
+```
+cyf3dSetRotScale(sprite,rotation,scale)
+```
 You can also set position, rotation and scale, together with adding the shader:
-```cyf3dAddShaderPosRotScale(sprite,position,rotation,scale)```
+```
+cyf3dAddShaderPosRotScale(sprite,position,rotation,scale)
+```
 To get position, rotation or scale of an object there are:
 ```
 cyf3dGetPos(sprite)
