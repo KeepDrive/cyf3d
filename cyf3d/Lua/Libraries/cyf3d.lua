@@ -1,10 +1,10 @@
 --Variables:
 cyf3dcamPos={0,0,0}
 cyf3dcamRot={0,0,0}
-cyf3dactiveObjects={}
 cyf3dfov=90
 cyf3dcamNear=0.001
 cyf3dcamFar=1000
+cyf3dactiveObjects={}
 cyf3dwindows=Misc.OSType=="Windows"
 --Utils:
 function cyf3dDotProduct(vec1,vec2)
@@ -55,10 +55,12 @@ end
 function cyf3dRotationMatrix(x,y,z)
     x = math.rad(x or 0)
     y = math.rad(y or 0)
-    if cyf3dwindows then
-        y=-y
-    end
     z = math.rad(z or 0)
+    if cyf3dwindows then
+        x=-x
+        y=-y
+        z=-z
+    end
     local xc=math.cos(x)
     local xs=math.sin(x)
     local yc=math.cos(y)
