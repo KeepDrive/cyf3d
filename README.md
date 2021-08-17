@@ -38,7 +38,7 @@ cyf3dSetPos(sprite,position)
 cyf3dSetRot(sprite,rotation)
 cyf3dSetScale(sprite,scale)
 ```
-Position, rotation and scale are three-dimensional vectors, made using tables of three values: {x,y,z}(Though not necessarily, the values can be nil, which will just use the current existing values, the table can also be empty or contain less or more than three values and it should still work the same)
+Sprite is the sprite object that needs to be modified; position, rotation and scale are three-dimensional vectors, made using tables of three values: {x,y,z}(Though not necessarily, the values can be nil, which will just use the current existing values, the table can also be empty or contain less or more than three values and it should still work the same)
 You can also set all three parameters at once:
 ```
 cyf3dSetPosRotScale(sprite,position,rotation,scale)
