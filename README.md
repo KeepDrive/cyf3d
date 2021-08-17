@@ -21,6 +21,7 @@ To add the shader to a sprite you should use:
 ```
 cyf3dAddShader(sprite)
 ```
+Instead of adding the shader directly, as the library has to constantly update shader values for each sprite, so it has to keep track of them.
 For this shader to work properly you have to put this once in the "Update()" function after all modifications to the 3d scene, if you are unsure about what that means, you can just put it at the end of the "Update()" function:
 ```
 cyf3dUpdate()
@@ -31,7 +32,6 @@ cyf3dRemoveShader(sprite)
 ```
 WARNING: You should always remove the shader with this function before deleting a sprite or changing it's shader, the library isn't made to garbage collect for you.
 ### Sprite transformation:
-Instead of adding the shader directly, as the library has to constantly update shader values for each sprite, so it has to keep track of them.
 For changing position, rotation and scale of any sprite there are:
 ```
 cyf3dSetPos(sprite,position)
