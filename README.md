@@ -22,6 +22,7 @@ To add the shader to a sprite you should use:
 cyf3dAddShader(sprite)
 ```
 Instead of adding the shader directly, as the library has to constantly update shader values for each sprite, so it has to keep track of them.
+
 For this shader to work properly you have to put this once in the "Update()" function after all modifications to the 3d scene, if you are unsure about what that means, you can just put it at the end of the "Update()" function:
 ```
 cyf3dUpdate()
@@ -39,6 +40,7 @@ cyf3dSetRot(sprite,rotation)
 cyf3dSetScale(sprite,scale)
 ```
 Sprite is the sprite object that needs to be modified; position, rotation and scale are three-dimensional vectors, made using tables of three values: {x,y,z}(Though not necessarily, the values can be nil, which will just use the current existing values, the table can also be empty or contain less or more than three values and it should still work the same)
+
 You can also set all three parameters at once:
 ```
 cyf3dSetPosRotScale(sprite,position,rotation,scale)
@@ -59,7 +61,9 @@ cyf3dGetScale(sprite)
 ```
 ### Transforming the UV map:
 So you want to make a wide wall and are wondering how to get around the texture stretching? Then it's time to modify the UV map.
+
 While the UV map controls are rather primitive here, so is the shader itself and its uses(at least as it currently is), the controls provided should be fine for most scenarios:
+
 You can modify the position, rotation and scale of the UV map:
 ```
 cyf3dUVSetPos(sprite,position)
@@ -74,12 +78,14 @@ cyf3dSetCamPos(position)
 cyf3dSetCamRot(rotation)
 ```
 Position and rotation are three-dimensional vectors. Camera rotation supports roll, but if you do not need it I suggest commenting out a line in "cyf3dModelViewMatrix()"
+
 You can also change the camera's fov and near/far values:
 ```
 cyf3dSetFov(fov)
 cyf3dSetCamClipping(near,far)
 ```
 Note that near and far values are OpenGL-like, not DirectX-like, so 0<near<far. Fov is measured in degrees.
+
 At the end there are all the camera getter functions:
 ```
 cyf3dGetCamPos()
