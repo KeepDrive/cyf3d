@@ -263,11 +263,24 @@ function cyf3dSetVertices(obj,verts)
         local newVerts={}
         for i=1,4 do
             newVerts[i]={}
-            for j=1,3 do
+            for j=1,2 do
                 if verts[5-i]==nil then
                     newVerts[i][j]=curVerts[i][j]
                 else
                     newVerts[i][j]=verts[5-i][j] or curVerts[i][j]
+                end
+            end
+            if verts[5-i]==nil then
+                newVerts[i][3]=curVerts[i][3]
+            else
+                if cyf3dwindows then
+                    if verts[5-i][3]~=nil then
+                        newVerts[i][3]=-verts[5-i][3]
+                    else
+                        newVerts[i][3]=curVerts[i][3]
+                    end
+                else
+                    newVerts[i][3]=verts[5-i][3] or curVerts[i][3]
                 end
             end
             newVerts[i][4]=0
