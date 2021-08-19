@@ -19,9 +19,9 @@ To install, as with any Create Your Frisk mod, just drop the cyf3d folder into t
 All commands that you should need are listed in the library after the "Actual commands:" comment, but I'll still run through them.
 To add the shader to a sprite you should use:
 ```
-cyf3dAddShader(sprite)
+cyf3dAddShader(sprite,type)
 ```
-Instead of adding the shader directly, as the library has to constantly update shader values for each sprite, so it has to keep track of them.
+Instead of adding the shader directly, as the library has to constantly update shader values for each sprite, so it has to keep track of them. There are two types of shader currently, "Basic3D" and "Complex3D"("Basic3D" by default if you leave type without value, type is a string), the former is much more simpler in terms of UV manipulation, but the latter allows you greater control over the shape of the sprite and the UV map.
 
 For this shader to work properly you have to put this once in the "Update()" function after all modifications to the 3d scene, if you are unsure about what that means, you can just put it at the end of the "Update()" function:
 ```
@@ -51,7 +51,7 @@ cyf3dSetRotScale(sprite,rotation,scale)
 ```
 You can also set position, rotation and scale, together with adding the shader:
 ```
-cyf3dAddShaderPosRotScale(sprite,position,rotation,scale)
+cyf3dAddShaderPosRotScale(sprite,position,rotation,scale,type)
 ```
 To get position, rotation or scale of an object there are:
 ```
@@ -59,10 +59,19 @@ cyf3dGetPos(sprite)
 cyf3dGetRot(sprite)
 cyf3dGetScale(sprite)
 ```
+
+#### Complex3D-specific:
+In terms of sprite manipulation Basic3D shares all its functions with Complex3D. Complex3D adds one new function:
+```
+cyf3dSetVertices(sprite,verts)
+```
+Verts is a table of 4 three-dimensional vectors which represent the positions of all the 4 vertices of a sprite, in the order of: top-left, top-right, bottom-right, bottom-left.
+
 ### Transforming the UV map:
 So you want to make a wide wall and are wondering how to get around the texture stretching? Then it's time to modify the UV map.
 
-While the UV map controls are rather primitive here, so is the shader itself and its uses(at least as it currently is), the controls provided should be fine for most scenarios:
+#### Basic3D-specific:
+While the UV map controls are rather primitive here, so is the shader itself and its uses, the controls provided should be fine for most scenarios:
 
 You can modify the position, rotation and scale of the UV map:
 ```
@@ -71,6 +80,17 @@ cyf3dUVSetRotScale(sprite,rotation,scale)
 cyf3dUVSetPosRotScale(sprite,position,rotation,scale)
 ```
 Here position and scale are two-dimensional vectors that work like before except only for two values of {x,y} instead of the three {x,y,z}, but rotation is a number instead, because there's only one axis to rotate around.
+
+#### Complex3D-specific:
+
+In Complex3D I cut out the Basic3D simple UV transformation, because I felt it was mostly unrequired for the purposes of this shader. The only UV-related function for Complex3D is:
+```
+cyf3dUVSetPoints(sprite,points)
+```
+Points is a table of 4 two-dimensional vectors, one for each vertex, same order as the vertices go in: top-left, top-right, bottom-right, bottom-left.
+
+When using this while doing weird shapes you might notice that the UV starts becoming warped, sadly I cannot offer a fix for this as that is normal behaviour for complex shapes with low vertex count. One might help is tesselation, but I'll have to look into how that could work later as I currently have other plans for this project.
+
 ### Manipulating the camera:
 In terms of camera transformation you can only change a camera's position, and rotation, scale is not implemented:
 ```
