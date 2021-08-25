@@ -6,6 +6,7 @@ cyf3dcamNear=0.001
 cyf3dcamFar=1000
 cyf3dactiveObjects={}
 cyf3dwindows=Misc.OSType=="Windows"
+cyf3dpost06order=CYFversion<"0.7"
 --Utils:
 function cyf3dDotProduct(vec1,vec2)
     res=0
@@ -144,11 +145,10 @@ end
 function cyf3dAddShader(obj,type)
     type=type or "Basic3D"
     if pcall(obj.shader.Set,"cyf3d",type) then--Basic3D and Complex3D Shaders should be compatible with any device but just in case
-        cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),cyf3dScaleMatrix(),0}--Any non-persistent properties we want to apply every frame so we save the rotation and the scale and have two cached matrices, one for vertices the other for UV, for now simple identity matrices
-        if type=="Complex3D" then
-            cyf3dactiveObjects[#cyf3dactiveObjects][3]={{0,0,0,0},{1,0,0,0},{1,1,0,0},{0,1,0,0}}
-            cyf3dactiveObjects[#cyf3dactiveObjects][6]=1
-            cyf3dactiveObjects[#cyf3dactiveObjects][7]={{-0.5,-0.5,0,0},{0.5,-0.5,0,0},{0.5,0.5,0,0},{-0.5,0.5,0,0}}
+        if type=="Basic3D" then
+            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),cyf3dScaleMatrix(),0}--Any non-persistent properties we want to apply every frame so we save the rotation and the scale and have two cached matrices, one for vertices the other for UV, for now simple identity matrices
+        elseif type=="Complex3D" then
+            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),{{0,0,0,0},{1,0,0,0},{1,1,0,0},{0,1,0,0}},1,{{-0.5,-0.5,0,0},{0.5,-0.5,0,0},{0.5,0.5,0,0},{-0.5,0.5,0,0}}}
         end
         obj.shader.SetWrapMode("repeat")--Make UVs work as intended
     else
@@ -158,11 +158,10 @@ end
 function cyf3dAddShaderPosRotScale(obj,posVector,rotVector,scaleVector,type)
     type=type or "Basic3D"
     if pcall(obj.shader.Set,"cyf3d",type) then
-        cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),cyf3dScaleMatrix(),0}
-        if type=="Complex3D" then
-            cyf3dactiveObjects[#cyf3dactiveObjects][3]={{0,0},{1,0},{1,1},{0,1}}
-            cyf3dactiveObjects[#cyf3dactiveObjects][6]=1
-            cyf3dactiveObjects[#cyf3dactiveObjects][7]={{-0.5,-0.5,0},{0.5,-0.5,0},{0.5,0.5,0},{-0.5,0.5,0}}
+        if type=="Basic3D" then
+            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),cyf3dScaleMatrix(),0}--Any non-persistent properties we want to apply every frame so we save the rotation and the scale and have two cached matrices, one for vertices the other for UV, for now simple identity matrices
+        elseif type=="Complex3D" then
+            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),{{0,0,0,0},{1,0,0,0},{1,1,0,0},{0,1,0,0}},1,{{-0.5,-0.5,0,0},{0.5,-0.5,0,0},{0.5,0.5,0,0},{-0.5,0.5,0,0}}}
         end
         obj.shader.SetWrapMode("repeat")
         cyf3dSetPos(obj,posVector)
@@ -180,24 +179,28 @@ function cyf3dUpdate()
         cachedMVP=cyf3dMVPMatrix()
         cachedMVP=cyf3dactiveObjects[1][1].shader.Matrix(cachedMVP[1],cachedMVP[2],cachedMVP[3],cachedMVP[4])
         for i=1,#cyf3dactiveObjects do
-            cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
             modtable=cyf3dactiveObjects[i][4]
-            cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
             if cyf3dactiveObjects[i][6]==0 then
+                cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
+                cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
                 modtable=cyf3dactiveObjects[i][5]
                 cyf3dactiveObjects[i][1].shader.SetMatrix("uvMod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
             else
+                cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
+                cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
                 cyf3dactiveObjects[i][1].shader.SetVectorArray("vertPos",cyf3dactiveObjects[i][7])
-                cyf3dactiveObjects[i][1].shader.SetVectorArray("uvPos",cyf3dactiveObjects[i][3])
+                cyf3dactiveObjects[i][1].shader.SetFloatArray("uvPos",cyf3dactiveObjects[i][5])
             end
         end
     end
 end
 function cyf3dGetPos(obj)
     curPos=obj.shader.GetVector("_objPos")
-    curPos[1]=curPos[2]--Dunno why it's shifted like that, should look into it if i make an update
-    curPos[2]=curPos[3]
-    curPos[3]=cyf3dwindows and -curPos[4] or curPos[4]
+    if cyf3dpost06order then
+        curPos[1]=curPos[2]--GetVector() in CYF 0.6 returns vector table in a different order: {w,x,y,z} instead of {x,y,z,w}, requiring the shift
+        curPos[2]=curPos[3]
+        curPos[3]=cyf3dwindows and -curPos[4] or curPos[4]
+    end
     curPos[4]=0
     return curPos
 end
@@ -316,7 +319,7 @@ end
 function cyf3dUVSetPoints(obj,points)
     objIndex=cyf3dInArray(obj)
     if cyf3dactiveObjects[cyf3dInArray(obj)][6]==1 then
-        curPoints=cyf3dactiveObjects[objIndex][3]
+        curPoints=cyf3dactiveObjects[objIndex][5]
         local newPoints={}
         for i=1,4 do
             newPoints[i]={}
@@ -330,7 +333,7 @@ function cyf3dUVSetPoints(obj,points)
             newPoints[i][3]=0
             newPoints[i][4]=0
         end
-        cyf3dactiveObjects[objIndex][3]=newPoints
+        cyf3dactiveObjects[objIndex][5]=newPoints
     else
         DEBUG("Complex UV modification system is for Complex3D only")
     end
