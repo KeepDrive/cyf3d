@@ -189,7 +189,7 @@ function cyf3dUpdate()
                 cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
                 cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
                 cyf3dactiveObjects[i][1].shader.SetVectorArray("vertPos",cyf3dactiveObjects[i][7])
-                cyf3dactiveObjects[i][1].shader.SetFloatArray("uvPos",cyf3dactiveObjects[i][5])
+                cyf3dactiveObjects[i][1].shader.SetVectorArray("uvPos",cyf3dactiveObjects[i][5])
             end
         end
     end
