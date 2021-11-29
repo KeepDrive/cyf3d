@@ -87,7 +87,7 @@ shader "CYF/Complex3D"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.worldPosition = v.vertex;
-                float arrIndex=(v.uv.x*(1-v.uv.y))+2*(v.uv.x*v.uv.y)+3*((1-v.uv.x)*v.uv.y);//Branchless programming at its finest
+                int arrIndex=int((v.uv.x*(1-v.uv.y))+2*(v.uv.x*v.uv.y)+3*((1-v.uv.x)*v.uv.y));//Branchless programming at its finest
                 o.uv = uvPos[arrIndex].xy;
                 o.vertex = mul(MVP,mul(mod,float4(vertPos[arrIndex].xyz,1))+_objPos);
                 o.color = v.color;
@@ -101,9 +101,9 @@ shader "CYF/Complex3D"
                 color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
                 #endif
 
-                #ifdef UNITY_UI_ALPHACLIP
                 clip(color.a - 0.001);
-                #endif
+
+                color.rgb *= color.a;
 
                 return color;
             }

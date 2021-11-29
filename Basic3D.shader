@@ -100,9 +100,9 @@
                 color.a *= UnityGet2DClipping(i.worldPosition.xy, _ClipRect);
                 #endif
 
-                #ifdef UNITY_UI_ALPHACLIP
                 clip(color.a - 0.001);
-                #endif
+
+                color.rgb *= color.a;
 
                 return color;
             }
