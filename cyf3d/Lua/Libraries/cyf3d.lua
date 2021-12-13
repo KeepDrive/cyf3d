@@ -5,8 +5,9 @@ cyf3dfov=90
 cyf3dcamNear=0.001
 cyf3dcamFar=1000
 cyf3dactiveObjects={}
+cyf3d3DModels={}
 cyf3dwindows=Misc.OSType=="Windows"
-cyf3dpost06order=CYFversion<"0.7"
+cyf3dpre06order=CYFversion<"0.7"
 --Utils:
 function cyf3dDotProduct(vec1,vec2)
     res=0
@@ -170,8 +171,91 @@ function cyf3dAddShaderPosRotScale(obj,posVector,rotVector,scaleVector,type)
         DEBUG("cyf3d "..type.." shader failed to load")
     end
 end
+function cyf3dReadObjFile(path)
+    if cyf3d3DModels[path]~=nil then
+        return cyf3d3DModels[path]
+    end
+    local objFile=Misc.OpenFile(path,"r")
+    local data=objFile.ReadLines()
+    facevertuvtable={{},{},{}}
+    for i=1,objFile.lineCount do
+        local line=objFile.ReadLine(i)
+        local type=line:sub(1,2)
+        if type=="f " then
+            local facetablelen=#facevertuvtable[1]
+            facevertuvtable[1][facetablelen+1]={}
+            facetable=facevertuvtable[1][facetablelen+1]
+            for strnumber in string.gmatch(line:sub(3,line:len()),"%d+") do
+                facetable[#facetable+1]=tonumber(strnumber)
+            end
+            if #facetable>6 then--If the model contains vertex normals we want to cut those out
+                for j=#facetable,1,-3 do
+                    table.remove(facetable,j)
+                end
+            end
+        elseif type=="v " then
+            local verttablelen=#facevertuvtable[2]
+            facevertuvtable[2][verttablelen+1]={}
+            verttable=facevertuvtable[2][verttablelen+1]
+            for strnumber in string.gmatch(line:sub(3,line:len()),"[%d.-]+") do
+                verttable[#verttable+1]=tonumber(strnumber)
+            end
+        elseif type =="vt" then
+            local uvtablelen=#facevertuvtable[3]
+            facevertuvtable[3][uvtablelen+1]={}
+            uvtable=facevertuvtable[3][uvtablelen+1]
+            for strnumber in string.gmatch(line:sub(4,line:len()),"[%d.-]+") do
+                uvtable[#uvtable+1]=tonumber(strnumber)
+            end
+        end
+    end
+    cyf3d3DModels[path]=facevertuvtable
+    return facevertuvtable
+end
+function cyf3dCreate3DModel(facevertuvtable,texturepath,layer)
+    layer=layer or "Top"
+    mainSprite=CreateSprite(texturepath,layer)
+    if pcall(mainSprite.shader.Set,"cyf3d","Model3D") then
+        activelen=#cyf3dactiveObjects+1
+        cyf3dactiveObjects[activelen]={mainSprite,{0,0,0},{1,1,1},cyf3dScaleMatrix(),{},2}
+        mainSprite.shader.SetWrapMode("repeat")
+        curSprite=mainSprite
+        curVertPack={}
+        curUVPack={}
+        for i=1,#facevertuvtable[1] do
+            if i%33==0 and i>1 then
+                cyf3dactiveObjects[activelen][5][#cyf3dactiveObjects[activelen][5]+1]={curSprite,curVertPack,curUVPack}
+                curVertPack={}
+                curUVPack={}
+                curSprite=CreateSprite(texturepath,layer)
+                curSprite.shader.Set("cyf3d","Model3D")
+                curSprite.shader.SetWrapMode("repeat")
+            end
+            for j=1,#facevertuvtable[1][i],2 do
+                curVertPack[#curVertPack+1]=facevertuvtable[2][facevertuvtable[1][i][j]][1]
+                curVertPack[#curVertPack+1]=facevertuvtable[2][facevertuvtable[1][i][j]][2]
+                if cyf3dwindows then
+                    curVertPack[#curVertPack+1]=-facevertuvtable[2][facevertuvtable[1][i][j]][3]
+                else
+                    curVertPack[#curVertPack+1]=facevertuvtable[2][facevertuvtable[1][i][j]][3]
+                end
+            end
+            for j=2,#facevertuvtable[1][i],2 do
+                curUVPack[#curUVPack+1]=facevertuvtable[3][facevertuvtable[1][i][j]][1]
+                curUVPack[#curUVPack+1]=facevertuvtable[3][facevertuvtable[1][i][j]][2]
+            end
+        end
+        cyf3dactiveObjects[activelen][5][#cyf3dactiveObjects[activelen][5]+1]={curSprite,curVertPack,curUVPack}
+    else
+        DEBUG("cyf3d Model3D shader failed to load")
+        mainSprite.Remove()
+        return nil
+    end
+    return mainSprite
+end
 function cyf3dRemoveShader(obj)
-    table.remove(cyf3dactiveObjects,cyf3dInArray(obj))
+    index=cyf3dInArray(obj)
+    table.remove(cyf3dactiveObjects,index)
     obj.shader.Revert()
 end
 function cyf3dUpdate()
@@ -185,18 +269,25 @@ function cyf3dUpdate()
                 cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
                 modtable=cyf3dactiveObjects[i][5]
                 cyf3dactiveObjects[i][1].shader.SetMatrix("uvMod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
-            else
+            elseif cyf3dactiveObjects[i][6]==1 then
                 cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
                 cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
                 cyf3dactiveObjects[i][1].shader.SetVectorArray("vertPos",cyf3dactiveObjects[i][7])
                 cyf3dactiveObjects[i][1].shader.SetVectorArray("uvPos",cyf3dactiveObjects[i][5])
+            else
+                for j=1,#cyf3dactiveObjects[i][5] do
+                    cyf3dactiveObjects[i][5][j][1].shader.SetMatrix("MVP",cachedMVP)
+                    cyf3dactiveObjects[i][5][j][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
+                    cyf3dactiveObjects[i][5][j][1].shader.SetFloatArray("model",cyf3dactiveObjects[i][5][j][2])
+                    cyf3dactiveObjects[i][5][j][1].shader.SetFloatArray("gluv",cyf3dactiveObjects[i][5][j][3])
+                end
             end
         end
     end
 end
 function cyf3dGetPos(obj)
     curPos=obj.shader.GetVector("_objPos")
-    if cyf3dpost06order then
+    if cyf3dpre06order then
         curPos[1]=curPos[2]--GetVector() in CYF 0.6 returns vector table in a different order: {w,x,y,z} instead of {x,y,z,w}, requiring the shift
         curPos[2]=curPos[3]
         curPos[3]=cyf3dwindows and -curPos[4] or curPos[4]
@@ -219,7 +310,14 @@ function cyf3dSetPos(obj,posVector)
         posVector[3]=-posVector[3]
     end
     posVector[4]=0
-    obj.shader.SetVector("_objPos",posVector)
+    index=cyf3dInArray(obj)
+    if cyf3dactiveObjects[index][6]==2 then
+        for i=1,#cyf3dactiveObjects[index][5] do
+            cyf3dactiveObjects[index][5][i][1].shader.SetVector("_objPos",posVector)
+        end
+    else
+        obj.shader.SetVector("_objPos",posVector)
+    end
 end
 function cyf3dSetRot(obj,rotVector)
     objIndex=cyf3dInArray(obj)
@@ -277,11 +375,7 @@ function cyf3dSetVertices(obj,verts)
                 newVerts[i][3]=curVerts[i][3]
             else
                 if cyf3dwindows then
-                    if verts[5-i][3]~=nil then
-                        newVerts[i][3]=-verts[5-i][3]
-                    else
-                        newVerts[i][3]=curVerts[i][3]
-                    end
+                    newVerts[i][3]=-verts[5-i][3] or curVerts[i][3]
                 else
                     newVerts[i][3]=verts[5-i][3] or curVerts[i][3]
                 end
