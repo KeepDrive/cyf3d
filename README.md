@@ -134,6 +134,7 @@ path is a string containing the path to the .obj file you want to load in from t
 ```
 cyf3dReadObjFile("model.obj")
 ```
+(Small note for Blender users, the .obj files Blender exports should work fine from what I've tested, but still here are the setting i would recommend("Geometry" tab when exporting): Include UVs on, Triangulate Faces on, Write Normals off)
 The function returns a "facevertuvtable" table that is used for creating the model itself with:
 ```
 cyf3dCreate3DModel(facevertuvtable,texturepath,layer)
