@@ -149,7 +149,11 @@ The function returns a sprite that acts as a model when the library interacts wi
 All the functions listed in the "Sprite transformation" paragraph should work with the returned model.
 
 If you wish to create your own file reader for 3D models - you absolutely can, all is required is that your code can create a facevertuvtable(and preferably store it in memory), facevertuvtable works similarly to the .obj file format:
+
 facevertuvtable should contain three tables:
+
 table 1(face data) contains tables of 6 values each, every other value starting from 1 is an integer that is the index of a vertex in table 2, every other value starting from 2 is an integer that is the index of a uv coordinate pair in table 3, {v1,uv1,v2,uv2,v3,uv3}
+
 table 2(vertex data) contains tables of 3 values each, each table is the coordinates of a vertex, {x,y,z}
+
 table 3(uv data) contains tables of 2 values each, each table contains UV coordinates, {x,y}
