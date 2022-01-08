@@ -80,7 +80,7 @@ function cyf3d.UpdateObjects()
         cyf3d.camera.MVP[3][4]=-cyf3d.camera.MVP[4][4]*m22+m23
         cyf3d.camera.MVP=cyf3d.objects[1].sprite.shader.Matrix(cyf3d.camera.MVP[1],cyf3d.camera.MVP[2],cyf3d.camera.MVP[3],cyf3d.camera.MVP[4])
         for i=1,#cyf3d.objects do
-            cyf3d.objects[i].Update()
+            cyf3d.objects[i]._Update()
         end
     end
 end
@@ -143,7 +143,7 @@ function cyf3d.Create3DSprite(spritename,layer,childNumber)
         class._uvmod[1, 3]=x+0.5
         class._uvmod[2, 3]=y+0.5
     end
-    function class.Update()
+    function class._Update()
         if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale then
             class._cache.xrotation=class.xrotation
             class._cache.yrotation=class.yrotation
@@ -247,7 +247,7 @@ function cyf3d.CreateQuad(spritename,layer,childNumber)
     function class.SetVertPoints(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4)
         vertpoints={x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4}
     end
-    function class.Update()
+    function class._Update()
         if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale or class._cache.zscale!=class.zscale then
             class._cache.xrotation=class.xrotation
             class._cache.yrotation=class.yrotation
@@ -368,7 +368,7 @@ function cyf3d.Create3DModel(facevertuvtable,texturepath,layer,childNumber)
         class.yscale=yscale
         class.zscale=zscale
     end
-    function class.Update()
+    function class._Update()
         if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale or class._cache.zscale!=class.zscale then
             class._cache.xrotation=class.xrotation
             class._cache.yrotation=class.yrotation
