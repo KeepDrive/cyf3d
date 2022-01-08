@@ -236,9 +236,10 @@ function cyf3d.CreateQuad(spritename,layer,childNumber)
     function class.SetVar(yourVariableName,value)
         class[yourVariableName]=value
     end
-    function class.Scale(xscale,yscale)
+    function class.Scale(xscale,yscale,zscale)
         class.xscale=xscale
         class.yscale=yscale
+        class.zscale=zscale
     end
     function class.SetUVPoints(x1,y1,x2,y2,x3,y3,x4,y4)
         uvpoints={x1,y1,x2,y2,x3,y3,x4,y4}
@@ -362,9 +363,10 @@ function cyf3d.Create3DModel(facevertuvtable,texturepath,layer,childNumber)
     function class.SetVar(yourVariableName,value)
         class[yourVariableName]=value
     end
-    function class.Scale(xscale,yscale)
+    function class.Scale(xscale,yscale,zscale)
         class.xscale=xscale
         class.yscale=yscale
+        class.zscale=zscale
     end
     function class.Update()
         if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale or class._cache.zscale!=class.zscale then
