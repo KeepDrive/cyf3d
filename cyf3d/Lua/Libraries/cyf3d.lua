@@ -85,6 +85,20 @@ function cyf3d.UpdateObjects()
     end
 end
 
+function cyf3d.camera.Move(x,y,z)
+    cyf3d.camera.MoveTo(cyf3d.camera.x+x,cyf3d.camera.y+y,cyf3d.camera.z+z)
+end
+function cyf3d.camera.MoveTo(x,y,z)
+    cyf3d.camera.x=x
+    cyf3d.camera.y=y
+    cyf3d.camera.z=z
+end
+function cyf3d.camera.Rotate(xrotation,yrotation,zrotation)
+    cyf3d.camera.xrotation=xrotation
+    cyf3d.camera.yrotation=yrotation
+    cyf3d.camera.zrotation=zrotation
+end
+
 function cyf3d.Create3DSprite(spritename,layer,childNumber)
     if type(layer,0) == "number" then
         childNumber=layer
