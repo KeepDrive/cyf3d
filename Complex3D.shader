@@ -3,7 +3,6 @@ shader "CYF/Complex3D"
     Properties
     {
         _MainTex("Sprite Texture", 2D) = "white" {}
-        _objPos ("Object Position", Vector) = (0,0,0,0)
     }
     SubShader
     {
@@ -38,16 +37,15 @@ shader "CYF/Complex3D"
             };
 
             sampler2D _MainTex;
-            float4 _objPos;
             float4x4 mod,MVP;
-            float4 vertPos[4],uvPos[4];
+            float vertPos[12],uvPos[8];
 
             v2f vert(appdata v)
             {
                 v2f o;
                 int arrIndex=int((v.uv.x*(1-v.uv.y))+2*(v.uv.x*v.uv.y)+3*((1-v.uv.x)*v.uv.y));//Branchless programming at its finest
-                o.uv = uvPos[arrIndex].xy;
-                o.vertex = mul(MVP,mul(mod,float4(vertPos[arrIndex].xyz,1))+_objPos);
+                o.uv = float2(uvPos[arrIndex*2],uvPos[arrIndex*2+1]);
+                o.vertex = mul(MVP,mul(mod,float4(vertPos[arrIndex*3],vertPos[arrIndex*3+1],vertPos[arrIndex*3+2],1)));
                 o.color = v.color;
                 return o;
             }

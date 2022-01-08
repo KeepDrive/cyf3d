@@ -1,84 +1,101 @@
 require "cyf3d"--Library for easy communication with shader
 
---[[
-Quick message here from the dev as much as i want this to be a good example of how
-to use cyf3d and how to make a first person game with wall collisions and stuff
-- i'm heavily rushing things here for release out of sheer excitement of being
-able to finally complete something, so some of the math and code here is just
-complete nonsense jank with bandaid solutions left and right which causes
-constant issues, all completely trial and errored until it worked good enough
-
-The library's mostly exempt from spaghetti code though, at least i like to think so
-
-I hope at some point i'll have to get off my lazy butt and rewrite most of this code to make sense of it
-]]--
-
 background=CreateSprite("bg","Top")
 background.Scale(640,480)--Hide UI and stuff
 walls={}
 for i=1,20 do
-    walls[i]=CreateSprite("BrickSprite","Top")
-    cyf3dAddShader(walls[i])
+    walls[i]=cyf3d.Create3DSprite("BrickSprite","Top")
 end
-cyf3dSetPosRotScale(walls[2],{16,0,-16*6},{0,90},{6})
-cyf3dUVSetRotScale(walls[2],0,{6})
-cyf3dSetPosRotScale(walls[3],{-16,0,-16*8},{0,90},{8})
-cyf3dUVSetRotScale(walls[3],0,{8})
-cyf3dSetPosRotScale(walls[4],{-16,0,-16*19},{0,90})
-cyf3dSetPosRotScale(walls[5],{16,0,-16*17},{0,90},{3})
-cyf3dUVSetRotScale(walls[5],0,{3})
-cyf3dSetPos(walls[6],{32,0,-16*14})
-cyf3dSetPos(walls[7],{32,0,-16*12})
-cyf3dSetPosRotScale(walls[8],{48,0,-16*13},{0,90})
-cyf3dSetPos(walls[9],{-32,0,-16*18})
-cyf3dSetPos(walls[10],{-32,0,-16*16})
-cyf3dSetPos(walls[11],{-32,0,-16*20})
-cyf3dSetPosRotScale(walls[12],{48,0,-16*20},nil,{2})
-cyf3dUVSetRotScale(walls[12],0,{2})
-cyf3dSetPosRotScale(walls[13],{80,0,-16*24},{0,90},{4})
-cyf3dUVSetRotScale(walls[13],0,{4})
-cyf3dSetPosRotScale(walls[14],{-16,0,-16*28},nil,{6})
-cyf3dUVSetRotScale(walls[14],0,{6})
-cyf3dSetPosRotScale(walls[15],{-112,0,-16*24},{0,90},{4})
-cyf3dUVSetRotScale(walls[15],0,{4})
-cyf3dSetPosRotScale(walls[16],{-48,0,-16*19},{0,90})
-cyf3dSetPosRotScale(walls[17],{-48,0,-16*14},{0,90},{2})
-cyf3dUVSetRotScale(walls[17],0,{2})
-cyf3dSetPosRotScale(walls[18],{-112,0,-16*12},nil,{4})
-cyf3dUVSetRotScale(walls[18],0,{4})
-cyf3dSetPosRotScale(walls[19],{-176,0,-16*16},{0,90},{4})
-cyf3dUVSetRotScale(walls[19],0,{4})
-cyf3dSetPosRotScale(walls[20],{-144,0,-16*20},nil,{2})
-cyf3dUVSetRotScale(walls[20],0,{2})
-floor=CreateSprite("Grass","Top")
-cyf3dAddShader(floor)
-cyf3dSetPosRotScale(floor,{0,-16,-16*14},{0,0,90},{12,16})
-cyf3dUVSetRotScale(floor,0,{12,16})
+walls[2].MoveTo(16,0,16*6)
+walls[2].yrotation=90
+walls[2].xscale=6
+walls[2].ChangeUV(0,0,0,6,1)
+walls[3].MoveTo(-16,0,16*8)
+walls[3].yrotation=90
+walls[3].xscale=8
+walls[3].ChangeUV(0,0,0,8,1)
+walls[4].MoveTo(-16,0,16*19)
+walls[4].yrotation=90
+walls[5].MoveTo(16,0,16*17)
+walls[5].yrotation=90
+walls[5].xscale=3
+walls[5].ChangeUV(0,0,0,3,1)
+walls[6].MoveTo(32,0,16*14)
+walls[7].MoveTo(32,0,16*12)
+walls[8].MoveTo(48,0,16*13)
+walls[8].yrotation=90
+walls[9].MoveTo(-32,0,16*18)
+walls[10].MoveTo(-32,0,16*16)
+walls[11].MoveTo(-32,0,16*20)
+walls[12].MoveTo(48,0,16*20)
+walls[12].xscale=2
+walls[12].ChangeUV(0,0,0,2,1)
+walls[13].MoveTo(80,0,16*24)
+walls[13].yrotation=90
+walls[13].xscale=4
+walls[13].ChangeUV(0,0,0,4,1)
+walls[14].MoveTo(-16,0,16*28)
+walls[14].xscale=6
+walls[14].ChangeUV(0,0,0,6,1)
+walls[15].MoveTo(-112,0,16*24)
+walls[15].yrotation=90
+walls[15].xscale=4
+walls[15].ChangeUV(0,0,0,4,1)
+walls[16].MoveTo(-48,0,16*19)
+walls[16].yrotation=90
+walls[17].MoveTo(-48,0,16*14)
+walls[17].yrotation=90
+walls[17].xscale=2
+walls[17].ChangeUV(0,0,0,2,1)
+walls[18].MoveTo(-112,0,16*12)
+walls[18].xscale=4
+walls[18].ChangeUV(0,0,0,4,1)
+walls[19].MoveTo(-176,0,16*16)
+walls[19].yrotation=90
+walls[19].xscale=4
+walls[19].ChangeUV(0,0,0,4,1)
+walls[20].MoveTo(-144,0,16*20)
+walls[20].xscale=2
+walls[20].ChangeUV(0,0,0,2,1)
+floor=cyf3d.Create3DSprite("Grass","Top")
+floor.MoveTo(0,-16,16*14)
+floor.xrotation=90
+floor.xscale=12
+floor.yscale=16
+floor.ChangeUV(0,0,0,12,16)
 rotatables={}
 for i=1,5 do
-    rotatables[i]=CreateSprite("empty","Top")
-    rotatables[i].color32={0,0,0}
-    cyf3dAddShader(rotatables[i])
+    rotatables[i]=cyf3d.Create3DSprite("empty","Top")
+    rotatables[i].sprite.color32={0,0,0}
 end
-rotatables[1].Set("MonsterKidOW/1")
-rotatables[2].Set("AsrielOW/1")
-rotatables[3].Set("MonsterKidOW/1")
-rotatables[4].Set("AsrielOW/1")
-rotatables[5].Set("MonsterKidOW/1")
-cyf3dSetPosRotScale(rotatables[1],{32,-4,-16*13},nil,{0.45,0.45})
-cyf3dSetPosRotScale(rotatables[2],{0,-4,-16*26},nil,{0.45,0.45})
-cyf3dSetPosRotScale(rotatables[3],{-128,-4,-16*16},nil,{0.45,0.45})
-cyf3dSetPosRotScale(rotatables[4],{-80,-4,-16*13},nil,{0.45,0.45})
-cyf3dSetPosRotScale(rotatables[5],{64,-4,-16*21},nil,{0.45,0.45})
+rotatables[1].sprite.Set("MonsterKidOW/1")
+rotatables[2].sprite.Set("AsrielOW/1")
+rotatables[3].sprite.Set("MonsterKidOW/1")
+rotatables[4].sprite.Set("AsrielOW/1")
+rotatables[5].sprite.Set("MonsterKidOW/1")
+rotatables[1].MoveTo(32,-4,16*13)
+rotatables[1].xscale=0.45
+rotatables[1].yscale=0.45
+rotatables[2].MoveTo(0,-4,16*26)
+rotatables[2].xscale=0.45
+rotatables[2].yscale=0.45
+rotatables[3].MoveTo(-128,-4,16*16)
+rotatables[3].xscale=0.45
+rotatables[3].yscale=0.45
+rotatables[4].MoveTo(-80,-4,16*13)
+rotatables[4].xscale=0.45
+rotatables[4].yscale=0.45
+rotatables[5].MoveTo(64,-4,16*21)
+rotatables[5].xscale=0.45
+rotatables[5].yscale=0.45
 wallIntersectables={}
 function getIntersectable(obj)
-    rot=math.rad(cyf3dGetRot(obj)[2]+90)
-    scale=cyf3dGetScale(obj)[1]*16
-    pos=cyf3dGetPos(obj)
+    rot=math.rad(obj.yrotation+90)
+    scale=obj.xscale*16
+    pos={obj.x,obj.y,obj.z}
     cosRot=math.cos(rot)
     sinRot=math.sin(rot)
-    --the positions are also needed to be flipped for collision to work(?), here comes a second bandaid
-    return {{-pos[1]-scale*sinRot,-pos[3]-scale*cosRot},{-pos[1]+scale*sinRot,-pos[3]+scale*cosRot}}
+    return {{pos[1]+scale*sinRot,pos[3]+scale*cosRot},{pos[1]-scale*sinRot,pos[3]-scale*cosRot}}
 end
 for i=1,#walls do
     wallIntersectables[i]=getIntersectable(walls[i])
@@ -95,8 +112,6 @@ slice.Scale(3,3)
 hand.Scale(4,4)
 hand.loopmode="ONESHOT"
 slice.loopmode="ONESHOT"
---mouseposXmem=0
---mouseposYmem=0
 sliceQueue={}
 sliceTimer=0
 updateSlice=false
@@ -127,7 +142,7 @@ function wallCollision(movAngle)
     for i=1,#wallIntersectables do
         wall=wallIntersectables[i]
         if lineIntersection({oldPos,newPos},wall) then
-            wallAngle=math.rad(cyf3dGetRot(walls[i])[2])
+            wallAngle=math.rad(walls[i].yrotation)
             newPos=lineFindIntersection(wall,{newPos,{newPos[1]+math.sin(wallAngle),newPos[2]+math.cos(wallAngle)}})
             if (movAngle-math.deg(wallAngle)-90)%360<180 then
                 newPos[1]=newPos[1]+math.sin(wallAngle)*0.5
@@ -139,7 +154,7 @@ function wallCollision(movAngle)
             for j=1,#wallIntersectables do--Second pass in case there are two collidable walls
                 wall=wallIntersectables[j]
                 if lineIntersection({oldPos,newPos},wall) then
-                    wallAngle=math.rad(cyf3dGetRot(walls[j])[2])
+                    wallAngle=math.rad(walls[j].yrotation)
                     newPos=lineFindIntersection(wall,{oldPos,newPos})
                     if (movAngle-math.deg(wallAngle)-90)%360<180 then
                         newPos[1]=newPos[1]+math.sin(wallAngle)*0.5
@@ -157,22 +172,24 @@ function wallCollision(movAngle)
 end
 NewAudio.CreateChannel("Sounds")
 function Update()
-    --The original plan was to use mouse control, but since i can't manipulate the mouse inside cyf - i scrapped it. If you want to try it out just uncomment this and the required variables, playing in fullscreen and using mouse wrapping is recommended.
+    --The original plan was to use mouse control, but since i can't manipulate the mouse inside cyf - i scrapped it. If you want to try it out just uncomment this, playing in fullscreen and using mouse wrapping is recommended.
     --[[
+    mouseposXmem=mouseposXmem or Input.MousePosX
+    mouseposYmem=mouseposYmem or Input.MousePosY
     if math.abs(Input.MousePosX-mouseposXmem)>=400 then
         mouseposXmem=(Input.MousePosX>=mouseposXmem) and mouseposXmem-405 or mouseposXmem+405
     end
     if math.abs(Input.MousePosY-mouseposYmem)>=400 then
         mouseposYmem=(Input.MousePosY>=mouseposYmem) and mouseposYmem+478 or mouseposYmem-478
     end
-    angleX=angleX+(mouseposXmem-Input.MousePosX)*sensitivity
-    angleY=angleY+(Input.MousePosY-mouseposYmem)*sensitivity
+    angleY=angleY-(mouseposXmem-Input.MousePosX)*sensitivity
+    angleX=angleX-(Input.MousePosY-mouseposYmem)*sensitivity
     mouseposXmem=Input.MousePosX
     mouseposYmem=Input.MousePosY
     ]]--
-    angleRad=math.rad(angleX)
+    angleRad=math.rad(angleY)
     for i=1,#rotatables do
-        cyf3dSetRot(rotatables[i],{0,angleX})
+        rotatables[i].yrotation=angleY
     end
     cosYaw=math.cos(angleRad)
     sinYaw=math.sin(angleRad)
@@ -180,22 +197,24 @@ function Update()
         sliceTimer=sliceTimer+1--I think it somewhat makes sense to keep this synced with the framerate so i won't bother with deltatime and stuff
         if sliceTimer==50 then
             NewAudio.PlaySound("Sounds","hitsound")
-            slicedPos=cyf3dGetPos(sliceQueue[1])
-            cyf3dSetPos(sliceQueue[1],{slicedPos[1]+cosYaw*0.4,nil,slicedPos[3]-sinYaw*0.4})
+            slicedPos={sliceQueue[1].x,sliceQueue[1].y,sliceQueue[1].z}
+            sliceQueue[1].x=slicedPos[1]+cosYaw*0.4
+            sliceQueue[1].z=slicedPos[3]-sinYaw*0.4
         elseif sliceTimer<=100 and sliceTimer>50 and sliceTimer%6==3 then
-            cyf3dSetPos(sliceQueue[1],{slicedPos[1]-cosYaw*0.4,nil,slicedPos[3]+sinYaw*0.4})
+            sliceQueue[1].x=slicedPos[1]-cosYaw*0.4
+            sliceQueue[1].z=slicedPos[3]+sinYaw*0.4
         elseif sliceTimer<=100 and sliceTimer>50 and sliceTimer%6==0 then
-            cyf3dSetPos(sliceQueue[1],{slicedPos[1]+cosYaw*0.4,nil,slicedPos[3]-sinYaw*0.4})
+            sliceQueue[1].x=slicedPos[1]+cosYaw*0.4
+            sliceQueue[1].z=slicedPos[3]-sinYaw*0.4
         elseif sliceTimer==101 then
             NewAudio.PlaySound("Sounds","enemydust")
-            cyf3dRemoveShader(sliceQueue[1])--Please remove shader before calling sprite.Remove, the library doesn't garbage collect automatically
-            sliceQueue[1].Remove()
             for i=1,#rotatables do
                 if rotatables[i]==sliceQueue[1] then
                     table.remove(rotatables,i)--This is generally unsafe but we break out of loop right after so it's fine
                     break
                 end
             end
+            sliceQueue[1].Remove()
             table.remove(sliceQueue,1)
             if not (endofgame and #sliceQueue==0) then
                 if #sliceQueue==0 then
@@ -220,43 +239,43 @@ function Update()
     end
     if Input.GetKey("D")>=1 and not endofgame then
         oldPos={camPosVec[1],camPosVec[3]}
-        newPos={camPosVec[1]-cosYaw,camPosVec[3]+sinYaw}
-        wallCollision((angleX+270)%360)
+        newPos={camPosVec[1]+cosYaw,camPosVec[3]-sinYaw}
+        wallCollision((angleY+90)%360)
         camPosVec[1]=newPos[1]
         camPosVec[3]=newPos[2]
     end
     if Input.GetKey("A")>=1 and not endofgame then
         oldPos={camPosVec[1],camPosVec[3]}
-        newPos={camPosVec[1]+cosYaw,camPosVec[3]-sinYaw}
-        wallCollision((angleX+90)%360)
+        newPos={camPosVec[1]-cosYaw,camPosVec[3]+sinYaw}
+        wallCollision((angleY+270)%360)
         camPosVec[1]=newPos[1]
         camPosVec[3]=newPos[2]
     end
     if Input.GetKey("W")>=1 and not endofgame then
         oldPos={camPosVec[1],camPosVec[3]}
         newPos={camPosVec[1]+sinYaw,camPosVec[3]+cosYaw}
-        wallCollision(angleX)
+        wallCollision(angleY)
         camPosVec[1]=newPos[1]
         camPosVec[3]=newPos[2]
     end
     if Input.GetKey("S")>=1 and not endofgame then
         oldPos={camPosVec[1],camPosVec[3]}
         newPos={camPosVec[1]-sinYaw,camPosVec[3]-cosYaw}
-        wallCollision((angleX+180)%360)
+        wallCollision((angleY+180)%360)
         camPosVec[1]=newPos[1]
         camPosVec[3]=newPos[2]
     end
     if Input.GetKey("UpArrow")>=1 and not endofgame then
-        angleY=math.min(angleY+sensitivity,90)
+        angleX=math.max(angleX-sensitivity,-90)
     end
     if Input.GetKey("DownArrow")>=1 and not endofgame then
-        angleY=math.max(angleY-sensitivity,-90)
+        angleX=math.min(angleX+sensitivity,90)
     end
     if Input.GetKey("LeftArrow")>=1 and not endofgame then
-        angleX=(angleX+sensitivity)%360
+        angleY=(angleY-sensitivity)%360
     end
     if Input.GetKey("RightArrow")>=1 and not endofgame then
-        angleX=(angleX-sensitivity)%360
+        angleY=(angleY+sensitivity)%360
     end
     if Input.GetKey("Space")==1 and not endofgame then
         hand.setAnimation(ATKAnim)
@@ -288,7 +307,10 @@ function Update()
             end
         end
     end
-    cyf3dSetCamPos(camPosVec)
-    cyf3dSetCamRot({angleX,angleY})--You can actaully add a Z value if you want for whatever reason
-    cyf3dUpdate()--Required to be put in Update(), preferably after all modifications to the 3d scene
+    cyf3d.camera.x=camPosVec[1]
+    cyf3d.camera.y=camPosVec[2]
+    cyf3d.camera.z=camPosVec[3]
+    cyf3d.camera.xrotation=angleX
+    cyf3d.camera.yrotation=angleY
+    cyf3d.UpdateObjects()--Required to be put in Update(), preferably after all modifications to the 3d scene
 end

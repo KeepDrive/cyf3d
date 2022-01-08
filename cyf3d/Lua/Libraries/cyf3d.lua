@@ -1,179 +1,12 @@
---Variables:
-cyf3dcamPos={0,0,0}
-cyf3dcamRot={0,0,0}
-cyf3dfov=90
-cyf3dcamNear=0.001
-cyf3dcamFar=1000
-cyf3dactiveObjects={}
-cyf3d3DModels={}
-cyf3dwindows=Misc.OSType=="Windows"
-cyf3dpre06order=CYFversion<"0.7"
---Utils:
-function cyf3dDotProduct(vec1,vec2)
-    res=0
-    for i = 1,math.min(#vec1,#vec2) do
-        res=res+vec1[i]*vec2[i]
-    end
-    return res
-end
-function cyf3dGetMatrixColumn(mat,x)
-    return {mat[1][x],mat[2][x],mat[3][x],mat[4][x]}
-end
-function cyf3dApplyMatrix(mat1,mat2)
-    endmatrix = {}
-    for i = 1,4 do
-        endmatrix[i] = {}
-        for j = 1,4 do
-            endmatrix[i][j]=cyf3dDotProduct(mat1[i],cyf3dGetMatrixColumn(mat2,j))
-        end
-    end
-    return endmatrix
-end
-function cyf3dMatrixFlipZ(mat)
-    endmatrix=mat
-    endmatrix[1][3]=-endmatrix[1][3]
-    endmatrix[2][3]=-endmatrix[2][3]
-    endmatrix[3][3]=-endmatrix[3][3]
-    endmatrix[4][3]=-endmatrix[4][3]
-    return endmatrix
-end
-function cyf3dInArray(obj)
-    for i = 1,#cyf3dactiveObjects do
-        if cyf3dactiveObjects[i][1]==obj then
-            return i
-        end
-    end
-    return nil
-end
-function cyf3dDebugMatrix(matdebug)
-    DEBUG("--------------------------")
-    DEBUG(tostring(matdebug[1][1]).."/"..tostring(matdebug[1][2]).."/"..tostring(matdebug[1][3]).."/"..tostring(matdebug[1][4]))
-    DEBUG(tostring(matdebug[2][1]).."/"..tostring(matdebug[2][2]).."/"..tostring(matdebug[2][3]).."/"..tostring(matdebug[2][4]))
-    DEBUG(tostring(matdebug[3][1]).."/"..tostring(matdebug[3][2]).."/"..tostring(matdebug[3][3]).."/"..tostring(matdebug[3][4]))
-    DEBUG(tostring(matdebug[4][1]).."/"..tostring(matdebug[4][2]).."/"..tostring(matdebug[4][3]).."/"..tostring(matdebug[4][4]))
-    DEBUG("--------------------------")
-end
---Matrix creation:
-function cyf3dRotationMatrix(x,y,z)
-    x = math.rad(x or 0)
-    y = math.rad(y or 0)
-    z = math.rad(z or 0)
-    if cyf3dwindows then
-        x=-x
-        y=-y
-        z=-z
-    end
-    local xc=math.cos(x)
-    local xs=math.sin(x)
-    local yc=math.cos(y)
-    local ys=math.sin(y)
-    local zc=math.cos(z)
-    local zs=math.sin(z)
-    return {{xc*yc,xc*ys*zs-xs*zc,xc*ys*zc+xs*zs,0},
-            {xs*yc,xs*ys*zs+xc*zc,xs*ys*zc-xc*zs,0},
-            {  -ys,         yc*zs,         yc*zc,0},
-            {    0,             0,             0,1}}
-end
-function cyf3dScaleMatrix(x,y,z)
-    x = x or 1
-    y = y or 1
-    z = z or 1
-    return {{x,0,0,0},
-            {0,y,0,0},
-            {0,0,z,0},
-            {0,0,0,1}}
-end
---These two matrices are just for reference, as they're trivial to combine
-function cyf3dModelMatrix()
-    return {{1,0,0,cyf3dcamPos[1]},
-            {0,1,0,cyf3dcamPos[2]},
-            {0,0,1,cyf3dcamPos[3]},
-            {0,0,0,1}}
-end
-function cyf3dViewMatrix()
-    local cosPitch=math.cos(math.rad(cyf3dcamRot[2]))
-    local cosYaw=math.cos(math.rad(cyf3dcamRot[1]))
-    local sinPitch=math.sin(math.rad(cyf3dcamRot[2]))
-    local sinYaw=math.sin(math.rad(cyf3dcamRot[1]))
-    return {{         cosYaw,        0,        -sinYaw,0},
-            {sinYaw*sinPitch, cosPitch,cosYaw*sinPitch,0},
-            {sinYaw*cosPitch,-sinPitch,cosPitch*cosYaw,0},
-            {              0,        0,              0,1}}
-end
-function cyf3dModelViewMatrix()
-    local cosPitch = math.cos(math.rad(cyf3dcamRot[2]))
-    local cosYaw   = math.cos(math.rad(cyf3dcamRot[1]))
-    local sinPitch = math.sin(math.rad(cyf3dcamRot[2]))
-    local sinYaw   = math.sin(math.rad(cyf3dcamRot[1]))
-    endmatrix={{         cosYaw,        0,        -sinYaw,0},
-               {sinYaw*sinPitch, cosPitch,cosYaw*sinPitch,0},
-               {sinYaw*cosPitch,-sinPitch,cosPitch*cosYaw,0},
-               {              0,        0,              0,1}}
-    --If you don't need roll you can comment this out:
-    cyf3dApplyMatrix(endmatrix,cyf3dRotationMatrix(cyf3dcamRot[3],0,0))
-    endmatrix[1][4]=cyf3dDotProduct(endmatrix[1],cyf3dcamPos)
-    endmatrix[2][4]=cyf3dDotProduct(endmatrix[2],cyf3dcamPos)
-    endmatrix[3][4]=cyf3dDotProduct(endmatrix[3],cyf3dcamPos)
-    return endmatrix
-end
-function cyf3dProjectionMatrix()
-    local minfov=1
-    local maxfov=179
-    local m11 = math.atan(math.rad(math.max(math.min(180-cyf3dfov or 90,maxfov),minfov)))
-    local m00 = m11*0.75--0.75 being 1 divided by the aspect ratio, 4:3
-    local m22=0
-    local m23=0
-    if cyf3dwindows then
-        m22 = -cyf3dcamNear/(cyf3dcamNear-cyf3dcamFar)
-        m23 = -(cyf3dcamFar*cyf3dcamNear)/(cyf3dcamNear-cyf3dcamFar)
-    else
-        m22 = -(cyf3dcamFar+cyf3dcamNear)/(cyf3dcamFar-cyf3dcamNear)
-        m23 = -2*(cyf3dcamFar*cyf3dcamNear)/(cyf3dcamFar-cyf3dcamNear)
-    end
-    return {{m00,  0,  0,  0},
-            {  0,m11,  0,  0},
-            {  0,  0,m22,m23},
-            {  0,  0, -1,  0}}
-end
-function cyf3dMVPMatrix()
-    if cyf3dwindows then
-        return cyf3dMatrixFlipZ(cyf3dApplyMatrix(cyf3dProjectionMatrix(),cyf3dModelViewMatrix()))
-    else
-        return cyf3dApplyMatrix(cyf3dProjectionMatrix(),cyf3dModelViewMatrix())
-    end
-end
---Actual commands:
-function cyf3dAddShader(obj,type)
-    type=type or "Basic3D"
-    if pcall(obj.shader.Set,"cyf3d",type) then--Basic3D and Complex3D Shaders should be compatible with any device but just in case
-        if type=="Basic3D" then
-            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),cyf3dScaleMatrix(),0}--Any non-persistent properties we want to apply every frame so we save the rotation and the scale and have two cached matrices, one for vertices the other for UV, for now simple identity matrices
-        elseif type=="Complex3D" then
-            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),{{0,0,0,0},{1,0,0,0},{1,1,0,0},{0,1,0,0}},1,{{-0.5,-0.5,0,0},{0.5,-0.5,0,0},{0.5,0.5,0,0},{-0.5,0.5,0,0}}}
-        end
-        obj.shader.SetWrapMode("repeat")--Make UVs work as intended
-    else
-        DEBUG("cyf3d "..type.." shader failed to load")
-    end
-end
-function cyf3dAddShaderPosRotScale(obj,posVector,rotVector,scaleVector,type)
-    type=type or "Basic3D"
-    if pcall(obj.shader.Set,"cyf3d",type) then
-        if type=="Basic3D" then
-            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),cyf3dScaleMatrix(),0}--Any non-persistent properties we want to apply every frame so we save the rotation and the scale and have two cached matrices, one for vertices the other for UV, for now simple identity matrices
-        elseif type=="Complex3D" then
-            cyf3dactiveObjects[#cyf3dactiveObjects+1]={obj,{0,0,0},{1,1,1},cyf3dScaleMatrix(),{{0,0,0,0},{1,0,0,0},{1,1,0,0},{0,1,0,0}},1,{{-0.5,-0.5,0,0},{0.5,-0.5,0,0},{0.5,0.5,0,0},{-0.5,0.5,0,0}}}
-        end
-        obj.shader.SetWrapMode("repeat")
-        cyf3dSetPos(obj,posVector)
-        cyf3dSetRotAndScale(obj,rotVector,scaleVector)
-    else
-        DEBUG("cyf3d "..type.." shader failed to load")
-    end
-end
-function cyf3dReadObjFile(path)
-    if cyf3d3DModels[path]~=nil then
-        return cyf3d3DModels[path]
+cyf3d={
+    objects={},
+    camera={x=0,y=0,z=0,xrotation=0,yrotation=0,zrotation=0,fov=90,far=1000,near=0.001},
+    models={},
+    windows=Misc.OSType=="Windows"
+}
+function cyf3d.ReadObjFile(path)
+    if cyf3d.models[path]~=nil then
+        return cyf3d.models[path]
     end
     local objFile=Misc.OpenFile(path,"r")
     local data=objFile.ReadLines()
@@ -209,25 +42,283 @@ function cyf3dReadObjFile(path)
             end
         end
     end
-    cyf3d3DModels[path]=facevertuvtable
+    cyf3d.models[path]=facevertuvtable
     return facevertuvtable
 end
-function cyf3dCreate3DModel(facevertuvtable,texturepath,layer)
-    layer=layer or "Top"
-    mainSprite=CreateSprite(texturepath,layer)
-    if pcall(mainSprite.shader.Set,"cyf3d","Model3D") then
-        activelen=#cyf3dactiveObjects+1
-        cyf3dactiveObjects[activelen]={mainSprite,{0,0,0},{1,1,1},cyf3dScaleMatrix(),{},2}
-        mainSprite.shader.SetWrapMode("repeat")
-        curSprite=mainSprite
+
+function cyf3d.UpdateObjects()
+    if #cyf3d.objects!=0 then
+        local x = math.rad(cyf3d.camera.xrotation)
+        local y = math.rad(cyf3d.camera.yrotation)
+        local z = math.rad(-cyf3d.camera.zrotation)
+        local xc=math.cos(x)
+        local xs=math.sin(x)
+        local yc=math.cos(y)
+        local ys=math.sin(y)
+        local zc=math.cos(z)
+        local zs=math.sin(z)
+        local m11 = 1/math.tan(math.rad(cyf3d.camera.fov/2))
+        local m00 = m11*0.75
+        local m22 = 0
+        local m23 = 0
+        if windows then
+            m22 = cyf3d.camera.near/(cyf3d.camera.far-cyf3d.camera.near)
+            m23 = cyf3d.camera.far*cyf3d.camera.near/(cyf3d.camera.far-cyf3d.camera.near)
+        else
+            m22 = (cyf3d.camera.far+cyf3d.camera.near)/(cyf3d.camera.near-cyf3d.camera.far)
+            m23 = 2*cyf3d.camera.far*cyf3d.camera.near/(cyf3d.camera.near-cyf3d.camera.far)
+        end
+        local xszsxcyszc=xs*zs-xc*ys*zc
+        local xcyszsxszc=xc*ys*zs+xs*zc
+        local xcyc=xc*yc
+        cyf3d.camera.MVP={{m00*yc*zc,-m00*yc*zs,-m00*ys,0},
+                {m11*(xs*ys*zc+xc*zs),m11*(xc*zc-xs*ys*zs),m11*xs*yc,0},
+                {m22*(xszsxcyszc),m22*xcyszsxszc,-m22*xcyc,0},
+                {-xszsxcyszc,-xcyszsxszc,xcyc,xszsxcyszc*cyf3d.camera.x+xcyszsxszc*cyf3d.camera.y-xcyc*cyf3d.camera.z}}
+        cyf3d.camera.MVP[1][4]=-cyf3d.camera.MVP[1][1]*cyf3d.camera.x-cyf3d.camera.MVP[1][2]*cyf3d.camera.y-cyf3d.camera.MVP[1][3]*cyf3d.camera.z
+        cyf3d.camera.MVP[2][4]=-cyf3d.camera.MVP[2][1]*cyf3d.camera.x-cyf3d.camera.MVP[2][2]*cyf3d.camera.y-cyf3d.camera.MVP[2][3]*cyf3d.camera.z
+        cyf3d.camera.MVP[3][4]=-cyf3d.camera.MVP[4][4]*m22+m23
+        cyf3d.camera.MVP=cyf3d.objects[1].sprite.shader.Matrix(cyf3d.camera.MVP[1],cyf3d.camera.MVP[2],cyf3d.camera.MVP[3],cyf3d.camera.MVP[4])
+        for i=1,#cyf3d.objects do
+            cyf3d.objects[i].Update()
+        end
+    end
+end
+
+function cyf3d.Create3DSprite(spritename,layer,childNumber)
+    if type(layer,0) == "number" then
+        childNumber=layer
+        layer="Top"
+    else
+        layer=layer or "Top"
+        childNumber=childNumber or -1
+    end
+
+    --3DSprite class
+    local class={
+        sprite=CreateSprite(spritename,layer,childNumber),
+        x=0,y=0,z=0,
+        xrotation=0,yrotation=0,zrotation=0,
+        xscale=1.0,yscale=1.0,
+        _cache={xrotation=0,yrotation=0,zrotation=0,xscale=1.0,yscale=1.0}
+    }
+    class._uvmod=class.sprite.shader.matrix({1,0,0.5,0},{0,1,0.5,0},{0,0,1,0},{0,0,0,1})
+    class._mod=class.sprite.shader.matrix({1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1})
+    if not pcall(class.sprite.shader.Set,"cyf3d","Basic3D") then
+        class.sprite.Remove()
+        DEBUG("cyf3d Basic3D shader failed to load")
+        return nil
+    end
+    class.sprite.shader.SetWrapMode("repeat")
+    --To my surprise this works without having to pass self to it
+    --Huh
+    function class.Move(x,y,z)
+        class.MoveTo(class.x+x,class.y+y,class.z+z)
+    end
+    function class.MoveTo(x,y,z)
+        class.x=x
+        class.y=y
+        class.z=z
+    end
+    function class.Rotate(xrotation,yrotation,zrotation)
+        class.xrotation=xrotation
+        class.yrotation=yrotation
+        class.zrotation=zrotation
+    end
+    function class.GetVar(yourVariableName)
+        return class[yourVariableName]
+    end
+    function class.SetVar(yourVariableName,value)
+        class[yourVariableName]=value
+    end
+    function class.Scale(xscale,yscale)
+        class.xscale=xscale
+        class.yscale=yscale
+    end
+    function class.ChangeUV(x,y,rotation,xscale,yscale)
+        class._uvmod[1, 1]=math.cos(math.rad(rotation))*xscale
+        class._uvmod[1, 2]=-math.sin(math.rad(rotation))*yscale
+        class._uvmod[2, 1]=math.sin(math.rad(rotation))*xscale
+        class._uvmod[2, 2]=math.cos(math.rad(rotation))*yscale
+        class._uvmod[1, 3]=x+0.5
+        class._uvmod[2, 3]=y+0.5
+    end
+    function class.Update()
+        if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale then
+            class._cache.xrotation=class.xrotation
+            class._cache.yrotation=class.yrotation
+            class._cache.zrotation=class.zrotation
+            class._cache.xscale=class.xscale
+            class._cache.yscale=class.yscale
+            local x = math.rad(class.xrotation)
+            local y = math.rad(class.yrotation)
+            local z = math.rad(class.zrotation)
+            local xc=math.cos(x)
+            local xs=math.sin(x)
+            local yc=math.cos(y)
+            local ys=math.sin(y)
+            local zc=math.cos(z)
+            local zs=math.sin(z)
+            class._mod=class.sprite.shader.matrix({class.xscale*yc*zc,-class.yscale*yc*zs,ys,0},
+                        {class.xscale*(xs*ys*zc+xc*zs),class.yscale*(xc*zc-xs*ys*zs),-xs*yc,0},
+                        {class.xscale*(xs*zs-xc*ys*zc),class.yscale*(xc*ys*zs+xs*zc),xc*yc,0},
+                        {0,0,0,1})
+        end
+        class._mod[1, 4]=class.x
+        class._mod[2, 4]=class.y
+        class._mod[3, 4]=class.z
+        class.sprite.shader.SetMatrix("mod",class._mod)
+        class.sprite.shader.SetMatrix("uvMod",class._uvmod)
+        class.sprite.shader.SetMatrix("MVP",cyf3d.camera.MVP)
+    end
+    function class.Remove()
+        class.sprite.Remove()
+        for i=1,#cyf3d.objects do
+            if cyf3d.objects[i]==class then
+                table.remove(cyf3d.objects,i)
+                break
+            end
+        end
+        --Lua(pre 5.4) cannot do destructors so this is the only good-ish solution
+        return nil
+    end
+    --List of stuff i should consider doing:
+    --TODO: Add SetParent,MoveBelow,MoveAbove
+    --TODO: Add Masking
+    --TODO: Add SetPivot,SetAnchor
+    --TODO: Add Dust
+    cyf3d.objects[#cyf3d.objects+1]=class
+    return class
+end
+
+function cyf3d.CreateQuad(spritename,layer,childNumber)
+    if type(layer,0) == "number" then
+        childNumber=layer
+        layer="Top"
+    else
+        layer=layer or "Top"
+        childNumber=childNumber or -1
+    end
+
+    --Quad class
+    local class={
+        sprite=CreateSprite(spritename,layer,childNumber),
+        x=0,y=0,z=0,
+        xrotation=0,yrotation=0,zrotation=0,
+        xscale=1.0,yscale=1.0,zscale=1.0,
+        vertpoints={-0.5,-0.5,0,-0.5,-0.5,0,0.5,0.5,0,-0.5,0.5,0},
+        uvpoints={0,0,1,0,1,1,0,1},
+        _cache={xrotation=0,yrotation=0,zrotation=0,xscale=1.0,yscale=1.0,zscale=1.0}
+    }
+    class._mod=class.sprite.shader.matrix({1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1})
+    if not pcall(class.sprite.shader.Set,"cyf3d","Complex3D") then
+        DEBUG("cyf3d Complex3D shader failed to load")
+        class.sprite.Remove()
+        return nil
+    end
+    class.sprite.shader.SetWrapMode("repeat")
+    function class.Move(x,y,z)
+        class.MoveTo(class.x+x,class.y+y,class.z+z)
+    end
+    function class.MoveTo(x,y,z)
+        class.x=x
+        class.y=y
+        class.z=z
+    end
+    function class.Rotate(xrotation,yrotation,zrotation)
+        class.xrotation=xrotation
+        class.yrotation=yrotation
+        class.zrotation=zrotation
+    end
+    function class.GetVar(yourVariableName)
+        return class[yourVariableName]
+    end
+    function class.SetVar(yourVariableName,value)
+        class[yourVariableName]=value
+    end
+    function class.Scale(xscale,yscale)
+        class.xscale=xscale
+        class.yscale=yscale
+    end
+    function class.SetUVPoints(x1,y1,x2,y2,x3,y3,x4,y4)
+        uvpoints={x1,y1,x2,y2,x3,y3,x4,y4}
+    end
+    function class.SetVertPoints(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4)
+        vertpoints={x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4}
+    end
+    function class.Update()
+        if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale or class._cache.zscale!=class.zscale then
+            class._cache.xrotation=class.xrotation
+            class._cache.yrotation=class.yrotation
+            class._cache.zrotation=class.zrotation
+            class._cache.xscale=class.xscale
+            class._cache.yscale=class.yscale
+            class._cache.zscale=class.zscale
+            local x = math.rad(class.xrotation)
+            local y = math.rad(class.yrotation)
+            local z = math.rad(class.zrotation)
+            local xc=math.cos(x)
+            local xs=math.sin(x)
+            local yc=math.cos(y)
+            local ys=math.sin(y)
+            local zc=math.cos(z)
+            local zs=math.sin(z)
+            class._mod=class.sprite.shader.matrix({class.xscale*yc*zc,-class.yscale*yc*zs,class.zscale*ys,0},
+                        {class.xscale*(xs*ys*zc+xc*zs),class.yscale*(xc*zc-xs*ys*zs),-class.zscale*xs*yc,0},
+                        {class.xscale*(xs*zs-xc*ys*zc),class.yscale*(xc*ys*zs+xs*zc),class.zscale*xc*yc,0},
+                        {0,0,0,1})
+        end
+        class._mod[1, 4]=class.x
+        class._mod[2, 4]=class.y
+        class._mod[3, 4]=class.z
+        class.sprite.shader.SetMatrix("mod",class._mod)
+        class.sprite.shader.SetFloatArray("vertPos",class.vertpoints)
+        class.sprite.shader.SetFloatArray("uvPos",class.uvpoints)
+        class.sprite.shader.SetMatrix("MVP",cyf3d.camera.MVP)
+    end
+    function class.Remove()
+        class.sprite.Remove()
+        for i=1,#cyf3d.objects do
+            if cyf3d.objects[i]==class then
+                table.remove(cyf3d.objects,i)
+                break
+            end
+        end
+        return nil
+    end
+    cyf3d.objects[#cyf3d.objects+1]=class
+    return class
+end
+
+function cyf3d.Create3DModel(facevertuvtable,texturepath,layer,childNumber)
+    if type(layer,0) == "number" then
+        childNumber=layer
+        layer="Top"
+    else
+        layer=layer or "Top"
+        childNumber=childNumber or -1
+    end
+    --3DModel class
+    local class={
+        sprite=CreateSprite(texturepath,layer,childNumber),
+        x=0,y=0,z=0,
+        xrotation=0,yrotation=0,zrotation=0,
+        xscale=1.0,yscale=1.0,zscale=1.0,
+        _sprites={},
+        _cache={xrotation=0,yrotation=0,zrotation=0,xscale=1.0,yscale=1.0,zscale=1.0}
+    }
+    class._mod=class.sprite.shader.matrix({1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1})
+    if pcall(class.sprite.shader.Set,"cyf3d","Model3D") then
+        class.sprite.shader.SetWrapMode("repeat")
+        curSprite=class.sprite
         curVertPack={}
         curUVPack={}
         for i=1,#facevertuvtable[1] do
             if i%33==0 and i>1 then
-                cyf3dactiveObjects[activelen][5][#cyf3dactiveObjects[activelen][5]+1]={curSprite,curVertPack,curUVPack}
+                class._sprites[#class._sprites+1]={curSprite,curVertPack,curUVPack}
                 curVertPack={}
                 curUVPack={}
-                curSprite=CreateSprite(texturepath,layer)
+                curSprite=CreateSprite(texturepath,layer,childNumber)
                 curSprite.shader.Set("cyf3d","Model3D")
                 curSprite.shader.SetWrapMode("repeat")
             end
@@ -245,224 +336,80 @@ function cyf3dCreate3DModel(facevertuvtable,texturepath,layer)
                 curUVPack[#curUVPack+1]=facevertuvtable[3][facevertuvtable[1][i][j]][2]
             end
         end
-        cyf3dactiveObjects[activelen][5][#cyf3dactiveObjects[activelen][5]+1]={curSprite,curVertPack,curUVPack}
+        class._sprites[#class._sprites+1]={curSprite,curVertPack,curUVPack}
     else
         DEBUG("cyf3d Model3D shader failed to load")
         mainSprite.Remove()
         return nil
     end
-    return mainSprite
-end
-function cyf3dRemoveShader(obj)
-    index=cyf3dInArray(obj)
-    table.remove(cyf3dactiveObjects,index)
-    obj.shader.Revert()
-end
-function cyf3dUpdate()
-    if #cyf3dactiveObjects!=0 then
-        cachedMVP=cyf3dMVPMatrix()
-        cachedMVP=cyf3dactiveObjects[1][1].shader.Matrix(cachedMVP[1],cachedMVP[2],cachedMVP[3],cachedMVP[4])
-        for i=1,#cyf3dactiveObjects do
-            modtable=cyf3dactiveObjects[i][4]
-            if cyf3dactiveObjects[i][6]==0 then
-                cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
-                cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
-                modtable=cyf3dactiveObjects[i][5]
-                cyf3dactiveObjects[i][1].shader.SetMatrix("uvMod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
-            elseif cyf3dactiveObjects[i][6]==1 then
-                cyf3dactiveObjects[i][1].shader.SetMatrix("MVP",cachedMVP)
-                cyf3dactiveObjects[i][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
-                cyf3dactiveObjects[i][1].shader.SetVectorArray("vertPos",cyf3dactiveObjects[i][7])
-                cyf3dactiveObjects[i][1].shader.SetVectorArray("uvPos",cyf3dactiveObjects[i][5])
-            else
-                for j=1,#cyf3dactiveObjects[i][5] do
-                    cyf3dactiveObjects[i][5][j][1].shader.SetMatrix("MVP",cachedMVP)
-                    cyf3dactiveObjects[i][5][j][1].shader.SetMatrix("mod",cyf3dactiveObjects[i][1].shader.matrix(modtable[1],modtable[2],modtable[3],modtable[4]))
-                    cyf3dactiveObjects[i][5][j][1].shader.SetFloatArray("model",cyf3dactiveObjects[i][5][j][2])
-                    cyf3dactiveObjects[i][5][j][1].shader.SetFloatArray("gluv",cyf3dactiveObjects[i][5][j][3])
-                end
-            end
+    class.sprite.shader.SetWrapMode("repeat")
+    function class.Move(x,y,z)
+        class.MoveTo(class.x+x,class.y+y,class.z+z)
+    end
+    function class.MoveTo(x,y,z)
+        class.x=x
+        class.y=y
+        class.z=z
+    end
+    function class.Rotate(xrotation,yrotation,zrotation)
+        class.xrotation=xrotation
+        class.yrotation=yrotation
+        class.zrotation=zrotation
+    end
+    function class.GetVar(yourVariableName)
+        return class[yourVariableName]
+    end
+    function class.SetVar(yourVariableName,value)
+        class[yourVariableName]=value
+    end
+    function class.Scale(xscale,yscale)
+        class.xscale=xscale
+        class.yscale=yscale
+    end
+    function class.Update()
+        if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale or class._cache.zscale!=class.zscale then
+            class._cache.xrotation=class.xrotation
+            class._cache.yrotation=class.yrotation
+            class._cache.zrotation=class.zrotation
+            class._cache.xscale=class.xscale
+            class._cache.yscale=class.yscale
+            class._cache.zscale=class.zscale
+            local x = math.rad(class.xrotation)
+            local y = math.rad(class.yrotation)
+            local z = math.rad(class.zrotation)
+            local xc=math.cos(x)
+            local xs=math.sin(x)
+            local yc=math.cos(y)
+            local ys=math.sin(y)
+            local zc=math.cos(z)
+            local zs=math.sin(z)
+            class._mod=class.sprite.shader.matrix({class.xscale*yc*zc,-class.yscale*yc*zs,class.zscale*ys,0},
+                        {class.xscale*(xs*ys*zc+xc*zs),class.yscale*(xc*zc-xs*ys*zs),-class.zscale*xs*yc,0},
+                        {class.xscale*(xs*zs-xc*ys*zc),class.yscale*(xc*ys*zs+xs*zc),class.zscale*xc*yc,0},
+                        {0,0,0,1})
+        end
+        class._mod[1, 4]=class.x
+        class._mod[2, 4]=class.y
+        class._mod[3, 4]=class.z
+        for i=1,#class._sprites do
+            class._sprites[i][1].shader.SetMatrix("mod",class._mod)
+            class._sprites[i][1].shader.SetMatrix("MVP",cyf3d.camera.MVP)
+            class._sprites[i][1].shader.SetFloatArray("model",class._sprites[i][2])
+            class._sprites[i][1].shader.SetFloatArray("gluv",class._sprites[i][3])
         end
     end
-end
-function cyf3dGetPos(obj)
-    curPos=obj.shader.GetVector("_objPos")
-    if cyf3dpre06order then
-        curPos[1]=curPos[2]--GetVector() in CYF 0.6 returns vector table in a different order: {w,x,y,z} instead of {x,y,z,w}, requiring the shift
-        curPos[2]=curPos[3]
-        curPos[3]=cyf3dwindows and -curPos[4] or curPos[4]
-    end
-    curPos[4]=0
-    return curPos
-end
-function cyf3dGetRot(obj)
-    return cyf3dactiveObjects[cyf3dInArray(obj)][2]
-end
-function cyf3dGetScale(obj)
-    return cyf3dactiveObjects[cyf3dInArray(obj)][3]
-end
-function cyf3dSetPos(obj,posVector)
-    curPos=cyf3dGetPos(obj)
-    posVector[1]=posVector[1] or curPos[1]
-    posVector[2]=posVector[2] or curPos[2]
-    posVector[3]=posVector[3] or curPos[3]
-    if cyf3dwindows then
-        posVector[3]=-posVector[3]
-    end
-    posVector[4]=0
-    index=cyf3dInArray(obj)
-    if cyf3dactiveObjects[index][6]==2 then
-        for i=1,#cyf3dactiveObjects[index][5] do
-            cyf3dactiveObjects[index][5][i][1].shader.SetVector("_objPos",posVector)
+    function class.Remove()
+        for i=1,#class._sprites do
+            class._sprites[i][1].Remove()
         end
-    else
-        obj.shader.SetVector("_objPos",posVector)
-    end
-end
-function cyf3dSetRot(obj,rotVector)
-    objIndex=cyf3dInArray(obj)
-    objRot=cyf3dactiveObjects[objIndex][2]
-    rotVector=rotVector or {}
-    objRot[1]=rotVector[1] or objRot[1]
-    objRot[2]=rotVector[2] or objRot[2]
-    objRot[3]=rotVector[3] or objRot[3]
-    objScale=cyf3dactiveObjects[objIndex][3]
-    cyf3dactiveObjects[objIndex][4]=cyf3dApplyMatrix(cyf3dRotationMatrix(objRot[1],objRot[2],objRot[3]),cyf3dScaleMatrix(objScale[1],objScale[2],objScale[3]))
-end
-function cyf3dSetScale(obj,scaleVector)
-    objIndex=cyf3dInArray(obj)
-    objScale=cyf3dactiveObjects[objIndex][3]
-    scaleVector=scaleVector or {}
-    objScale[1]=scaleVector[1] or objScale[1]
-    objScale[2]=scaleVector[2] or objScale[2]
-    objScale[3]=scaleVector[3] or objScale[3]
-    objRot=cyf3dactiveObjects[objIndex][2]
-    cyf3dactiveObjects[objIndex][4]=cyf3dApplyMatrix(cyf3dRotationMatrix(objRot[1],objRot[2],objRot[3]),cyf3dScaleMatrix(objScale[1],objScale[2],objScale[3]))
-end
-function cyf3dSetRotScale(obj,rotVector,scaleVector)
-    objIndex=cyf3dInArray(obj)
-    objRot=cyf3dactiveObjects[objIndex][2]
-    rotVector=rotVector or {}
-    objRot[1]=rotVector[1] or objRot[1]
-    objRot[2]=rotVector[2] or objRot[2]
-    objRot[3]=rotVector[3] or objRot[3]
-    objScale=cyf3dactiveObjects[objIndex][3]
-    scaleVector=scaleVector or {}
-    objScale[1]=scaleVector[1] or objScale[1]
-    objScale[2]=scaleVector[2] or objScale[2]
-    objScale[3]=scaleVector[3] or objScale[3]
-    cyf3dactiveObjects[objIndex][4]=cyf3dApplyMatrix(cyf3dRotationMatrix(objRot[1],objRot[2],objRot[3]),cyf3dScaleMatrix(objScale[1],objScale[2],objScale[3]))
-end
-function cyf3dSetPosRotScale(obj,posVector,rotVector,scaleVector)
-    cyf3dSetPos(obj,posVector)
-    cyf3dSetRotScale(obj,rotVector,scaleVector)
-end
-function cyf3dSetVertices(obj,verts)
-    objIndex=cyf3dInArray(obj)
-    if cyf3dactiveObjects[cyf3dInArray(obj)][6]==1 then
-        curVerts=cyf3dactiveObjects[objIndex][7]
-        local newVerts={}
-        for i=1,4 do
-            newVerts[i]={}
-            for j=1,2 do
-                if verts[5-i]==nil then
-                    newVerts[i][j]=curVerts[i][j]
-                else
-                    newVerts[i][j]=verts[5-i][j] or curVerts[i][j]
-                end
+        for i=1,#cyf3d.objects do
+            if cyf3d.objects[i]==class then
+                table.remove(cyf3d.objects,i)
+                break
             end
-            if verts[5-i]==nil then
-                newVerts[i][3]=curVerts[i][3]
-            else
-                if cyf3dwindows then
-                    newVerts[i][3]=-verts[5-i][3] or curVerts[i][3]
-                else
-                    newVerts[i][3]=verts[5-i][3] or curVerts[i][3]
-                end
-            end
-            newVerts[i][4]=0
         end
-        cyf3dactiveObjects[objIndex][7]=newVerts
-    else
-        DEBUG("Complex vertex modification system is for Complex3D only")
+        return nil
     end
-end
-function cyf3dUVSetPos(obj,posVector)
-    if cyf3dactiveObjects[cyf3dInArray(obj)][6]==0 then
-        posVector[1]=(posVector[1] or 0)+0.5
-        posVector[2]=(posVector[2] or 0)+0.5
-        posVector[3]=0
-        posVector[4]=0
-        obj.shader.SetVector("_uvPos",posVector)
-    else
-        DEBUG("Simple UV modification system is for Basic3D shader only")
-    end
-end
-function cyf3dUVSetRotScale(obj,rotation,scaleVector)
-    objIndex=cyf3dInArray(obj)
-    if cyf3dactiveObjects[objIndex][6]==0 then
-        cyf3dactiveObjects[objIndex][5]=cyf3dApplyMatrix(cyf3dRotationMatrix(rotation or 0),cyf3dScaleMatrix(scaleVector[1] or 1,scaleVector[2] or 1))
-    else
-        DEBUG("Simple UV modification system is for Basic3D shader only")
-    end
-end
-function cyf3dUVSetPosRotScale(obj,posVector,rotation,scaleVector)
-    cyf3dUVSetPos(obj,posVector)
-    cyf3dUVSetRotScale(obj,rotation,scaleVector)
-end
-function cyf3dUVSetPoints(obj,points)
-    objIndex=cyf3dInArray(obj)
-    if cyf3dactiveObjects[cyf3dInArray(obj)][6]==1 then
-        curPoints=cyf3dactiveObjects[objIndex][5]
-        local newPoints={}
-        for i=1,4 do
-            newPoints[i]={}
-            for j=1,2 do
-                if points[5-i]==nil then
-                    newPoints[i][j]=curPoints[i][j]
-                else
-                    newPoints[i][j]=points[5-i][j] or curPoints[i][j]
-                end
-            end
-            newPoints[i][3]=0
-            newPoints[i][4]=0
-        end
-        cyf3dactiveObjects[objIndex][5]=newPoints
-    else
-        DEBUG("Complex UV modification system is for Complex3D only")
-    end
-end
-function cyf3dSetCamPos(posVector)
-    posVector=posVector or {}
-    cyf3dcamPos[1]=posVector[1] or cyf3dcamPos[1]
-    cyf3dcamPos[2]=posVector[2] or cyf3dcamPos[2]
-    cyf3dcamPos[3]=posVector[3] or cyf3dcamPos[3]
-end
-function cyf3dSetCamRot(rotVector)
-    rotVector=rotVector or {}
-    cyf3dcamRot[1]=rotVector[1] or cyf3dcamRot[1]
-    cyf3dcamRot[2]=rotVector[2] or cyf3dcamRot[2]
-    cyf3dcamRot[3]=rotVector[3] or cyf3dcamRot[3]
-end
-function cyf3dSetFov(fov)
-    cyf3dfov=fov
-end
-function cyf3dSetCamClipping(camNear,camFar)
-    cyf3dcamNear=camNear or cyf3dcamNear
-    cyf3dcamFar=camFar or cyf3dcamFar
-end
-function cyf3dGetCamPos()
-    return cyf3dcamPos
-end
-function cyf3dGetCamRot()
-    return cyf3dcamRot
-end
-function cyf3dGetFov()
-    return cyf3dfov
-end
-function cyf3dGetCamClippingNear()
-    return cyf3dcamNear
-end
-function cyf3dGetCamClippingFar()
-    return cyf3dcamFar
+    cyf3d.objects[#cyf3d.objects+1]=class
+    return class
 end

@@ -3,7 +3,6 @@ shader "CYF/Model3D"
 	Properties
     {
         _MainTex("Sprite Texture", 2D) = "white" {}
-        _objPos ("Object Position", Vector) = (0,0,0,0)
     }
 	SubShader
 	{
@@ -38,7 +37,6 @@ shader "CYF/Model3D"
 			};
 
 			sampler2D _MainTex;
-			float4 _objPos;
 			float4x4 mod,MVP;
 
 			v2f vert(appdata v)
@@ -70,7 +68,7 @@ shader "CYF/Model3D"
 					{
 						[unroll(3)]
 						for (int j=0; j<3; j++){
-							o.vertex = mul(MVP,mul(mod,float4(model[i*9+j*3],model[i*9+j*3+1],model[i*9+j*3+2],1.0))+_objPos);
+							o.vertex = mul(MVP,mul(mod,float4(model[i*9+j*3],model[i*9+j*3+1],model[i*9+j*3+2],1.0)));
 							o.uv = float2(gluv[i*6+j*2],gluv[i*6+j*2+1]);
 							tristream.Append(o);
 						}
