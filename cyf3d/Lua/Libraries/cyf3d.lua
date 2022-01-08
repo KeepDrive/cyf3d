@@ -2,7 +2,7 @@ cyf3d={
     objects={},
     camera={x=0,y=0,z=0,xrotation=0,yrotation=0,zrotation=0,fov=90,far=1000,near=0.001},
     models={},
-    windows=Misc.OSType=="Windows"
+    opengl=Misc.OSType=="Linux"
 }
 function cyf3d.ReadObjFile(path)
     if cyf3d.models[path]~=nil then
@@ -61,12 +61,12 @@ function cyf3d.UpdateObjects()
         local m00 = m11*0.75
         local m22 = 0
         local m23 = 0
-        if windows then
-            m22 = cyf3d.camera.near/(cyf3d.camera.far-cyf3d.camera.near)
-            m23 = cyf3d.camera.far*cyf3d.camera.near/(cyf3d.camera.far-cyf3d.camera.near)
-        else
+        if cyf3d.opengl then
             m22 = (cyf3d.camera.far+cyf3d.camera.near)/(cyf3d.camera.near-cyf3d.camera.far)
             m23 = 2*cyf3d.camera.far*cyf3d.camera.near/(cyf3d.camera.near-cyf3d.camera.far)
+        else
+            m22 = cyf3d.camera.near/(cyf3d.camera.far-cyf3d.camera.near)
+            m23 = cyf3d.camera.far*cyf3d.camera.near/(cyf3d.camera.far-cyf3d.camera.near)
         end
         local xszsxcyszc=xs*zs-xc*ys*zc
         local xcyszsxszc=xc*ys*zs+xs*zc
