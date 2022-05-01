@@ -4,13 +4,19 @@ cyf3d={
     models={},
     opengl=Misc.OSType=="Linux"
 }
+
+local rad=math.rad
+local sin=math.sin
+local cos=math.cos
+local tan=math.tan
+
 function cyf3d.ReadObjFile(path)
     if cyf3d.models[path]~=nil then
         return cyf3d.models[path]
     end
     local objFile=Misc.OpenFile(path,"r")
     local data=objFile.ReadLines()
-    facevertuvtable={{},{},{}}
+    local facevertuvtable={{},{},{}}
     for i=1,objFile.lineCount do
         local line=objFile.ReadLine(i)
         local type=line:sub(1,2)
@@ -48,16 +54,16 @@ end
 
 function cyf3d.UpdateObjects()
     if #cyf3d.objects!=0 then
-        local x = math.rad(cyf3d.camera.xrotation)
-        local y = math.rad(cyf3d.camera.yrotation)
-        local z = math.rad(-cyf3d.camera.zrotation)
-        local xc=math.cos(x)
-        local xs=math.sin(x)
-        local yc=math.cos(y)
-        local ys=math.sin(y)
-        local zc=math.cos(z)
-        local zs=math.sin(z)
-        local m11 = 1/math.tan(math.rad(cyf3d.camera.fov/2))
+        local x = rad(cyf3d.camera.xrotation)
+        local y = rad(cyf3d.camera.yrotation)
+        local z = rad(-cyf3d.camera.zrotation)
+        local xc=cos(x)
+        local xs=sin(x)
+        local yc=cos(y)
+        local ys=sin(y)
+        local zc=cos(z)
+        local zs=sin(z)
+        local m11 = 1/tan(rad(cyf3d.camera.fov*0.5))
         local m00 = m11*0.75
         local m22 = 0
         local m23 = 0
@@ -73,7 +79,7 @@ function cyf3d.UpdateObjects()
         local xcyc=xc*yc
         cyf3d.camera.MVP={{m00*yc*zc,-m00*yc*zs,-m00*ys,0},
                 {m11*(xs*ys*zc+xc*zs),m11*(xc*zc-xs*ys*zs),m11*xs*yc,0},
-                {m22*(xszsxcyszc),m22*xcyszsxszc,-m22*xcyc,0},
+                {m22*xszsxcyszc,m22*xcyszsxszc,-m22*xcyc,0},
                 {-xszsxcyszc,-xcyszsxszc,xcyc,xszsxcyszc*cyf3d.camera.x+xcyszsxszc*cyf3d.camera.y-xcyc*cyf3d.camera.z}}
         cyf3d.camera.MVP[1][4]=-cyf3d.camera.MVP[1][1]*cyf3d.camera.x-cyf3d.camera.MVP[1][2]*cyf3d.camera.y-cyf3d.camera.MVP[1][3]*cyf3d.camera.z
         cyf3d.camera.MVP[2][4]=-cyf3d.camera.MVP[2][1]*cyf3d.camera.x-cyf3d.camera.MVP[2][2]*cyf3d.camera.y-cyf3d.camera.MVP[2][3]*cyf3d.camera.z
@@ -150,10 +156,10 @@ function cyf3d.Create3DSprite(spritename,layer,childNumber)
         class.yscale=yscale
     end
     function class.ChangeUV(x,y,rotation,xscale,yscale)
-        class._uvmod[1, 1]=math.cos(math.rad(rotation))*xscale
-        class._uvmod[1, 2]=-math.sin(math.rad(rotation))*yscale
-        class._uvmod[2, 1]=math.sin(math.rad(rotation))*xscale
-        class._uvmod[2, 2]=math.cos(math.rad(rotation))*yscale
+        class._uvmod[1, 1]=cos(rad(rotation))*xscale
+        class._uvmod[1, 2]=-sin(rad(rotation))*yscale
+        class._uvmod[2, 1]=sin(rad(rotation))*xscale
+        class._uvmod[2, 2]=cos(rad(rotation))*yscale
         class._uvmod[1, 3]=x+0.5
         class._uvmod[2, 3]=y+0.5
     end
@@ -164,15 +170,15 @@ function cyf3d.Create3DSprite(spritename,layer,childNumber)
             class._cache.zrotation=class.zrotation
             class._cache.xscale=class.xscale
             class._cache.yscale=class.yscale
-            local x = math.rad(class.xrotation)
-            local y = math.rad(class.yrotation)
-            local z = math.rad(class.zrotation)
-            local xc=math.cos(x)
-            local xs=math.sin(x)
-            local yc=math.cos(y)
-            local ys=math.sin(y)
-            local zc=math.cos(z)
-            local zs=math.sin(z)
+            local x = rad(class.xrotation)
+            local y = rad(class.yrotation)
+            local z = rad(class.zrotation)
+            local xc=cos(x)
+            local xs=sin(x)
+            local yc=cos(y)
+            local ys=sin(y)
+            local zc=cos(z)
+            local zs=sin(z)
             class._mod=class.sprite.shader.matrix({class.xscale*yc*zc,-class.yscale*yc*zs,ys,0},
                         {class.xscale*(xs*ys*zc+xc*zs),class.yscale*(xc*zc-xs*ys*zs),-xs*yc,0},
                         {class.xscale*(xs*zs-xc*ys*zc),class.yscale*(xc*ys*zs+xs*zc),xc*yc,0},
@@ -220,7 +226,7 @@ function cyf3d.CreateQuad(spritename,layer,childNumber)
         x=0,y=0,z=0,
         xrotation=0,yrotation=0,zrotation=0,
         xscale=1.0,yscale=1.0,zscale=1.0,
-        vertpoints={-0.5,-0.5,0,-0.5,-0.5,0,0.5,0.5,0,-0.5,0.5,0},
+        vertpoints={-0.5,-0.5,0,0.5,-0.5,0,0.5,0.5,0,-0.5,0.5,0},
         uvpoints={0,0,1,0,1,1,0,1},
         _cache={xrotation=0,yrotation=0,zrotation=0,xscale=1.0,yscale=1.0,zscale=1.0}
     }
@@ -256,10 +262,10 @@ function cyf3d.CreateQuad(spritename,layer,childNumber)
         class.zscale=zscale
     end
     function class.SetUVPoints(x1,y1,x2,y2,x3,y3,x4,y4)
-        uvpoints={x1,y1,x2,y2,x3,y3,x4,y4}
+        class.uvpoints={x1,y1,x2,y2,x3,y3,x4,y4}
     end
     function class.SetVertPoints(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4)
-        vertpoints={x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4}
+        class.vertpoints={x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4}
     end
     function class._Update()
         if class._cache.xrotation!=class.xrotation or class._cache.yrotation!=class.yrotation or class._cache.zrotation!=class.zrotation or class._cache.xscale!=class.xscale or class._cache.yscale!=class.yscale or class._cache.zscale!=class.zscale then
@@ -269,15 +275,15 @@ function cyf3d.CreateQuad(spritename,layer,childNumber)
             class._cache.xscale=class.xscale
             class._cache.yscale=class.yscale
             class._cache.zscale=class.zscale
-            local x = math.rad(class.xrotation)
-            local y = math.rad(class.yrotation)
-            local z = math.rad(class.zrotation)
-            local xc=math.cos(x)
-            local xs=math.sin(x)
-            local yc=math.cos(y)
-            local ys=math.sin(y)
-            local zc=math.cos(z)
-            local zs=math.sin(z)
+            local x = rad(class.xrotation)
+            local y = rad(class.yrotation)
+            local z = rad(class.zrotation)
+            local xc=cos(x)
+            local xs=sin(x)
+            local yc=cos(y)
+            local ys=sin(y)
+            local zc=cos(z)
+            local zs=sin(z)
             class._mod=class.sprite.shader.matrix({class.xscale*yc*zc,-class.yscale*yc*zs,class.zscale*ys,0},
                         {class.xscale*(xs*ys*zc+xc*zs),class.yscale*(xc*zc-xs*ys*zs),-class.zscale*xs*yc,0},
                         {class.xscale*(xs*zs-xc*ys*zc),class.yscale*(xc*ys*zs+xs*zc),class.zscale*xc*yc,0},
@@ -340,10 +346,10 @@ function cyf3d.Create3DModel(facevertuvtable,texturepath,layer,childNumber)
             for j=1,#facevertuvtable[1][i],2 do
                 curVertPack[#curVertPack+1]=facevertuvtable[2][facevertuvtable[1][i][j]][1]
                 curVertPack[#curVertPack+1]=facevertuvtable[2][facevertuvtable[1][i][j]][2]
-                if cyf3dwindows then
-                    curVertPack[#curVertPack+1]=-facevertuvtable[2][facevertuvtable[1][i][j]][3]
-                else
+                if cyf3d.opengl then
                     curVertPack[#curVertPack+1]=facevertuvtable[2][facevertuvtable[1][i][j]][3]
+                else
+                    curVertPack[#curVertPack+1]=-facevertuvtable[2][facevertuvtable[1][i][j]][3]
                 end
             end
             for j=2,#facevertuvtable[1][i],2 do
@@ -354,10 +360,9 @@ function cyf3d.Create3DModel(facevertuvtable,texturepath,layer,childNumber)
         class._sprites[#class._sprites+1]={curSprite,curVertPack,curUVPack}
     else
         DEBUG("cyf3d Model3D shader failed to load")
-        mainSprite.Remove()
+        class.sprite.Remove()
         return nil
     end
-    class.sprite.shader.SetWrapMode("repeat")
     function class.Move(x,y,z)
         class.MoveTo(class.x+x,class.y+y,class.z+z)
     end
@@ -390,15 +395,15 @@ function cyf3d.Create3DModel(facevertuvtable,texturepath,layer,childNumber)
             class._cache.xscale=class.xscale
             class._cache.yscale=class.yscale
             class._cache.zscale=class.zscale
-            local x = math.rad(class.xrotation)
-            local y = math.rad(class.yrotation)
-            local z = math.rad(class.zrotation)
-            local xc=math.cos(x)
-            local xs=math.sin(x)
-            local yc=math.cos(y)
-            local ys=math.sin(y)
-            local zc=math.cos(z)
-            local zs=math.sin(z)
+            local x = rad(class.xrotation)
+            local y = rad(class.yrotation)
+            local z = rad(class.zrotation)
+            local xc=cos(x)
+            local xs=sin(x)
+            local yc=cos(y)
+            local ys=sin(y)
+            local zc=cos(z)
+            local zs=sin(z)
             class._mod=class.sprite.shader.matrix({class.xscale*yc*zc,-class.yscale*yc*zs,class.zscale*ys,0},
                         {class.xscale*(xs*ys*zc+xc*zs),class.yscale*(xc*zc-xs*ys*zs),-class.zscale*xs*yc,0},
                         {class.xscale*(xs*zs-xc*ys*zc),class.yscale*(xc*ys*zs+xs*zc),class.zscale*xc*yc,0},
