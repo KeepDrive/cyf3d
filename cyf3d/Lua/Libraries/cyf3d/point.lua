@@ -1,22 +1,26 @@
 local Point = {x = 0, y = 0, z = 0}
 Point.__index = Point
 
-function Point:__add(obj)
+function Point.__add(lhs, rhs)
 --#DEBUG
-  assert(type(obj) == "table", "Attempt to use point addition with unsupported object")
+  assert(type(rhs) == "table", "Attempt to use point addition with unsupported object")
 --#DEBUGEND
-  self.x = self.x + (obj.x or obj[1])
-  self.y = self.y + (obj.y or obj[2])
-  self.z = self.z + (obj.z or obj[3])
+  local new = Point:new()
+  new.x = lhs.x + (rhs.x or rhs[1])
+  new.y = lhs.y + (rhs.y or rhs[2])
+  new.z = lhs.z + (rhs.z or rhs[3])
+  return new
 end
 
-function Point:__sub(obj)
+function Point.__sub(lhs, rhs)
 --#DEBUG
-  assert(type(obj) == "table", "Attempt to use point subtraction with unsupported object")
+  assert(type(rhs) == "table", "Attempt to use point subtraction with unsupported object")
 --#DEBUGEND
-  self.x = self.x - (obj.x or obj[1])
-  self.y = self.y - (obj.y or obj[2])
-  self.z = self.z - (obj.z or obj[3])
+  local new = Point:new()
+  new.x = lhs.x - (rhs.x or rhs[1])
+  new.y = lhs.y - (rhs.y or rhs[2])
+  new.z = lhs.z - (rhs.z or rhs[3])
+  return new
 end
 
 function Point:__eq(obj)
