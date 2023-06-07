@@ -11,4 +11,12 @@ function Object:new(obj)
   return obj
 end
 
+function Object:move(deltaPos)
+  self.pos = self.pos + deltaPos
+end
+
+function Object:moveTo(newPos)
+  self.pos = Point:new(newPos)
+end
+
 return Object
