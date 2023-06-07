@@ -16,7 +16,15 @@ function Object:move(deltaPos)
 end
 
 function Object:moveTo(newPos)
-  self.pos = Point:new(newPos)
+  self.pos:set(newPos)
+end
+
+function Object:rotate(deltaRotation)
+  self.rotation = self.rotation + deltaRotation
+end
+
+function Object:rotateTo(newRotation)
+  self.rotation:set(newRotation)
 end
 
 return Object
