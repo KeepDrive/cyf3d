@@ -79,6 +79,15 @@ function Point:distanceTo(obj)
   return sqrt(self:squareDistanceTo(obj))
 end
 
+function Point:set(obj)
+--#DEBUG
+  assert(type(obj) == "table", "Attempt to get distance to unsupported object")
+--#DEBUGEND
+  self.x = (obj.x or obj[1])
+  self.y = (obj.y or obj[2])
+  self.z = (obj.z or obj[3])
+end
+
 function Point:new(obj)
   obj = obj or {}
   setmetatable(obj, self)
