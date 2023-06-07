@@ -23,6 +23,17 @@ function Point.__sub(lhs, rhs)
   return new
 end
 
+function Point:__mul(num)
+--#DEBUG
+  assert(type(num) == "number", "Attempt to multiply point by non-number")
+--#DEBUGEND
+  local new = Point:new()
+  new.x = self.x * num
+  new.y = self.y * num
+  new.z = self.z * num
+  return new
+end
+
 function Point:__eq(obj)
 --#DEBUG
   assert(type(obj) == "table", "Attempt to compare point with unsupported object")
