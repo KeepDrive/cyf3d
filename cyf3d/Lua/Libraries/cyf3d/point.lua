@@ -11,7 +11,7 @@ function Point:__add(obj)
     self.z = self.z + (obj.z or obj[3])
 --#DEBUG
   else
-    error("Attempt to combine point with unsupported object")
+    error("Attempt to use point addition with unsupported object")
   end
 --#DEBUGEND
 end
@@ -26,7 +26,7 @@ function Point:__sub(obj)
     self.z = self.z - (obj.z or obj[3])
 --#DEBUG
   else
-    error("Attempt to combine point with unsupported object")
+    error("Attempt to use point subtraction with unsupported object")
   end
 --#DEBUGEND
 end
