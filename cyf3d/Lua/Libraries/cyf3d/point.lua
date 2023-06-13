@@ -1,5 +1,14 @@
-local Point = {x = 0, y = 0, z = 0}
-Point.__index = Point
+local Point = {}
+
+function Point:__index(key)
+  return self._point[key] or Point[key]
+end
+
+function Point:__newindex(key, value)
+  self._updated = true
+  self._point[key] = value
+end
+
 
 local sqrt = math.sqrt
 
@@ -90,6 +99,7 @@ end
 
 function Point:new(obj)
   obj = obj or {}
+  obj._point = {x = 0, y = 0, z = 0}
   setmetatable(obj, self)
   return obj
 end
