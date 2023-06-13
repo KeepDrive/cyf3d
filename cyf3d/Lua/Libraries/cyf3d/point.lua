@@ -161,8 +161,9 @@ function Point:divide(num)
 end
 
 function Point:new(obj)
-  obj = obj or {}
-  obj._point = {x = 0, y = 0, z = 0}
+  local point = {x = obj.x or obj[1], y = obj.y or obj[2], z = obj.z or obj[3]}
+  obj = {}
+  obj._point = point
   obj.updated = true
   setmetatable(obj, self)
   return obj
