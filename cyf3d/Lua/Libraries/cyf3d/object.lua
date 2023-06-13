@@ -1,6 +1,7 @@
 Point = require("point")
 
 Object = {}
+Object.__index = Object
 
 function Object:new(obj)
   obj = obj or {}
@@ -25,6 +26,10 @@ end
 
 function Object:rotateTo(newRotation)
   self.rotation:set(newRotation)
+end
+
+function Object:setScale(newScale)
+  self.scale:set(newScale)
 end
 
 return Object
