@@ -114,6 +114,50 @@ function Point:set(obj)
   self.updated = true
 end
 
+function Point:add(obj)
+--#DEBUG
+  assert(type(obj) == "table", "Attempt to use point addition with unsupported object")
+--#DEBUGEND
+  local selfPt = self._point
+  local objPt = obj._point or obj
+  selfPt.x = selfPt.x + (objPt.x or objPt[1])
+  selfPt.y = selfPt.y + (objPt.y or objPt[2])
+  selfPt.z = selfPt.z + (objPt.z or objPt[3])
+  self.updated = true
+end
+
+function Point:subtract(obj)
+--#DEBUG
+  assert(type(obj) == "table", "Attempt to use point subtraction with unsupported object")
+--#DEBUGEND
+  local selfPt = self._point
+  local objPt = obj._point or obj
+  selfPt.x = selfPt.x - (objPt.x or objPt[1])
+  selfPt.y = selfPt.y - (objPt.y or objPt[2])
+  selfPt.z = selfPt.z - (objPt.z or objPt[3])
+  self.updated = true
+end
+
+function Point:multiply(num)
+--#DEBUG
+  assert(type(num) == "number", "Attempt to multiply point by non-number")
+--#DEBUGEND
+  local selfPt = self._point
+  selfPt.x = selfPt.x * num
+  selfPt.y = selfPt.y * num
+  selfPt.z = selfPt.z * num
+end
+
+function Point:divide(num)
+--#DEBUG
+  assert(type(num) == "number", "Attempt to divide point by non-number")
+--#DEBUGEND
+  local selfPt = self._point
+  selfPt.x = selfPt.x * num
+  selfPt.y = selfPt.y * num
+  selfPt.z = selfPt.z * num
+end
+
 function Point:new(obj)
   obj = obj or {}
   obj._point = {x = 0, y = 0, z = 0}
