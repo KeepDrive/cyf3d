@@ -13,7 +13,7 @@ function Object:new(obj)
 end
 
 function Object:move(deltaPos)
-  self.pos = self.pos + deltaPos
+  self.pos:add(deltaPos)
 end
 
 function Object:moveTo(newPos)
@@ -21,15 +21,22 @@ function Object:moveTo(newPos)
 end
 
 function Object:rotate(deltaRotation)
-  self.rotation = self.rotation + deltaRotation
+  self.rotation:add(deltaRotation)
 end
 
 function Object:rotateTo(newRotation)
   self.rotation:set(newRotation)
 end
 
-function Object:setScale(newScale)
+function Object:scaleBy(factor)
+  self.scale:multiply(factor)
+end
+
+function Object:scaleTo(newScale)
   self.scale:set(newScale)
+end
+
+function Object:update()
 end
 
 return Object
