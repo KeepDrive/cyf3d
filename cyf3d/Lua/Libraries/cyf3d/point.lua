@@ -9,7 +9,6 @@ function Point:__newindex(key, value)
   self._point[key] = value
 end
 
-
 local sqrt = math.sqrt
 
 function Point.__add(lhs, rhs)
@@ -118,7 +117,7 @@ end
 function Point:new(obj)
   obj = obj or {}
   obj._point = {x = 0, y = 0, z = 0}
-  obj.updated = false
+  obj.updated = true
   setmetatable(obj, self)
   return obj
 end
