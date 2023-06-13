@@ -59,9 +59,10 @@ function Point:__div(num)
   local new = Point:new()
   local newPt = new._point
   local selfPt = self._point
-  newPt.x = selfPt.x * num
-  newPt.y = selfPt.y * num
-  newPt.z = selfPt.z * num
+  local oneOver = 1 / num
+  newPt.x = selfPt.x * oneOver
+  newPt.y = selfPt.y * oneOver
+  newPt.z = selfPt.z * oneOver
   return new
 end
 
@@ -153,9 +154,10 @@ function Point:divide(num)
   assert(type(num) == "number", "Attempt to divide point by non-number")
 --#DEBUGEND
   local selfPt = self._point
-  selfPt.x = selfPt.x * num
-  selfPt.y = selfPt.y * num
-  selfPt.z = selfPt.z * num
+  local oneOver = 1 / num
+  selfPt.x = selfPt.x * oneOver
+  selfPt.y = selfPt.y * oneOver
+  selfPt.z = selfPt.z * oneOver
 end
 
 function Point:new(obj)
