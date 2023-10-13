@@ -1,4 +1,6 @@
-wavetimer = math.huge--Makes wave infinite
-enemies = {"cyf3dExample"}
-nextwaves={"cyf3dExample"}
-function EncounterStarting()State("DEFENDING")end--Instantly starts wave
+enemies = { "empty" }
+nextwaves = { "testwave" }
+
+function EncounterStarting()
+	State("NONE")
+end

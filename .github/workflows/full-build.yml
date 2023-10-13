@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  full-build:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build release version
+        run: ./build.sh ~/LuaPreprocess release
+      - name: Build debug version
+        run: ./build.sh ~/LuaPreprocess debug
+      - name: Build minified version
+        run: ./build.sh ~/LuaPreprocess minified
+      - name: Upload builds
+        uses: actions/upload-artifact@v3
+        with:
+          name: builds
+          path:
+            build
