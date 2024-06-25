@@ -1,1 +1,2 @@
-function Update() end
+function Update()
+end
