@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs = { self, nixpkgs, flake-utils }:
@@ -18,6 +18,7 @@
       devShell = with pkgs; mkShellNoCC {
         shellHook = "export DEV_SHELL_LSPS='lua_ls = { settings = { Lua = { semantic = { enable = false }, runtime = { plugin = \"${pathToPlugin + "/plugin.lua"}\"}}}}'";
         packages = [
+          lua
           (lua-language-server.overrideAttrs {
             src = (fetchFromGitHub {
               owner = "KeepDrive";
