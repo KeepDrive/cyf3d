@@ -12,11 +12,15 @@ rm -r build/$tag
 cp -r cyf3d build/$tag
 
 preprocess() {
+  args="--silent"
+  if [ "$tag" == "release" ]; then
+    args="$args --release"
+  fi
   while read fileName; do
-    ./preprocess.sh $fileName
+    outputPath="build/$tag/$(echo $fileName | cut -c 7-)"
+    touch $outputPath
+    lua LuaPreprocess/preprocess-cl.lua $args -o $fileName $outputPath
   done
 }
 
-if [ $tag = "release" ]; then
-  find build/$tag -type f -name "*.lua" | preprocess
-fi
+find cyf3d -type f -name "*.lua" | preprocess
